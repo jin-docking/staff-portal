@@ -17,19 +17,11 @@ class UserController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-        $userMeta = $user->userMeta;
-
+       
+        $user = User::with('userMeta')->get();
 
         return response()->json($user);
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -110,9 +102,11 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
-    {
-        //
+    public function userProfile()
+    {   
+        $user = Auth::user();
+        $userMeta = $user->userMeta;
+        return response()->json($user);
     }
 
     /**
@@ -129,7 +123,7 @@ class UserController extends Controller
                 'first_name' => is_null($request->first_name) ? $user->first_name : $request->first_name,
                 'last_name' => is_null($request->last_name) ? $user->last_name : $request->last_name,
                 'email' => is_null($request->email) ? $user->email : $request->email,
-                'password' => Hash::make($request->password),
+                'password' => is_null($request->password) ? $user->password : Hash::make($request->password),
                 'role' => is_null($request->role) ? $user->role : $request->role,
             ]);
             

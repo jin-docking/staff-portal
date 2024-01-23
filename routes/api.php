@@ -33,6 +33,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     
     Route::get('user',[UserController::class, 'index']);
     Route::get('user/{id}',[UserController::class, 'show']);
+    Route::get('/userprofile',[UserController::class, 'userProfile']);
     Route::post('user',[UserController::class, 'store']);
     Route::delete('user/{id}',[UserController::class, 'destroy']);
     Route::put('/update/{id}', [UserController::class, 'update']);
@@ -41,17 +42,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // API route for logout user
     Route::post('/logout', [AuthController::class, 'logout']);
 });
-/*Route::post('/store',[App\Http\Controllers\Api\ManageStaffProfileController::class, 'store']);
-Route::get('/index',[App\Http\Controllers\Api\ManageStaffProfileController::class, 'index']);*/
-/*Route::apiResource('/team', TeamController::class);*/
-/*Route::post('team',[TeamController::class, 'store']);
-Route::post('team/{id}',[TeamController::class, 'assignUser']);
-Route::get('team/{id}',[TeamController::class, 'show']);
-Route::delete('team/{id}',[TeamController::class, 'destroy']);
-Route::put('team/{id}',[TeamController::class, 'update']);*/
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/team/{id}', [TeamController::class, 'show']);
     Route::get('/team', [TeamController::class, 'index']);
     Route::post('/team/{teamId}/assign-user', [TeamController::class, 'assignUser']);
     Route::post('/team',[TeamController::class, 'store']);
+    
 });

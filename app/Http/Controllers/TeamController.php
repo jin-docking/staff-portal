@@ -110,16 +110,16 @@ class TeamController extends Controller
     }
 
 
-    public function detachUser(Request $request, $team_id, $user_id)
-    {
+    // public function detachUser(Request $request, $team_id, $user_id)
+    // {
        
-        $team = Team::findOrFail($team_id);
-        $user = User::findOrFail($user_id);
+    //     $team = Team::findOrFail($team_id);
+    //     $user = User::findOrFail($user_id);
 
-        $team->user()->datach($user->id);
+    //     $team->user()->datach($user->id);
 
-        return response()->json(["message" => "User removed from team"]);
-    }
+    //     return response()->json(["message" => "User removed from team"]);
+    // }
     /**
      * Remove the specified resource from storage.
      */
