@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
 /*
@@ -44,9 +45,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+  
     Route::get('/team/{id}', [TeamController::class, 'show']);
     Route::get('/team', [TeamController::class, 'index']);
     Route::post('/team/{teamId}/assign-user', [TeamController::class, 'assignUser']);
     Route::post('/team',[TeamController::class, 'store']);
-    
+  
+    Route::post('/leave', [LeaveController::class, 'store']);
+    Route::put('/leaveupdate/{id}', [LeaveController::class,'update']);
+    Route::delete('/leavedelete/{id}', [LeaveController::class,'destroy']);
+    Route::get('/leaveshow/{id}', [LeaveController::class, 'show']);    
+
 });
+
