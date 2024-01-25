@@ -50,11 +50,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/team', [TeamController::class, 'index']);
     Route::post('/team/{teamId}/assign-user', [TeamController::class, 'assignUser']);
     Route::post('/team',[TeamController::class, 'store']);
-  
+});
+
+
+Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/leave', [LeaveController::class, 'store']);
     Route::put('/leaveupdate/{id}', [LeaveController::class,'update']);
     Route::delete('/leavedelete/{id}', [LeaveController::class,'destroy']);
-    Route::get('/leaveshow/{id}', [LeaveController::class, 'show']);    
+    Route::get('/leaveview/{id}', [LeaveController::class, 'show']);    
 
 });
-

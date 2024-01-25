@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\leave;
+use App\Models\Leave;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreleaveRequest;
 use App\Http\Requests\UpdateleaveRequest;
@@ -21,9 +21,7 @@ class LeaveController extends Controller
         $leaves = Leave::all();
 
         return response()->json($leaves);
-    }   
-
-   
+    }      
 
     /**
      * Store a newly created resource in storage.
@@ -36,9 +34,7 @@ class LeaveController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'required|string',
-        ]);
-
-      
+        ]);      
 
         $leave =Leave::create([
             'user_id' => $user->id,
@@ -48,8 +44,7 @@ class LeaveController extends Controller
             'description' => $request->description,
         ]);
 
-        // $user->leaves()->save($leave);
-        
+           
         return response()->json(['message' => 'Leave applied successfully', 'data' => $leave]);
         
     }
@@ -73,19 +68,10 @@ class LeaveController extends Controller
         } else {
             return response()->json(['message' => 'No leaves found for the specified user'], 404);
         }
-    }
-    
+    }  
 
 
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(leave $leave)
-    {
-        //
-    }
-
+   
     /**
      * Update the specified resource in storage.
      */    
@@ -105,6 +91,8 @@ class LeaveController extends Controller
              'end_date' => 'date|after_or_equal:start_date',
              'description' => 'string',
          ]);     
+         
+        //  update the leave
          $leave->update([
             'approval_status' => $request->input('approval_status', $leave->approval_status),
              'start_date' => $request->input('start_date', $leave->start_date),
@@ -123,14 +111,12 @@ class LeaveController extends Controller
     {
         $user = Auth::user();
     
-        $leave = Leave::findOrFail($id);
-    
-        // Check if the logged-in user has the authority to delete this leave
+        $leave = Leave::findOrFail($id);    
+
         if ($user->id !== $leave->user_id) {
             return response()->json(['error' => 'You do not have permission to delete this leave.'], 403);
-        }
-    
-        // Delete the leave
+        }    
+         //  delete the leave
         $leave->delete();
     
         return response()->json(['message' => 'Leave deleted successfully']);
