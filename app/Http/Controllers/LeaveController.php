@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\leave;
+use App\Models\Leave;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreleaveRequest;
 use App\Http\Requests\UpdateleaveRequest;
@@ -44,8 +44,7 @@ class LeaveController extends Controller
             'description' => $request->description,
         ]);
 
-        // $user->leaves()->save($leave);
-        
+           
         return response()->json(['message' => 'Leave applied successfully', 'data' => $leave]);
         
     }
@@ -69,19 +68,10 @@ class LeaveController extends Controller
         } else {
             return response()->json(['message' => 'No leaves found for the specified user'], 404);
         }
-    }
-    
+    }  
 
 
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(leave $leave)
-    {
-        //
-    }
-
+   
     /**
      * Update the specified resource in storage.
      */    
