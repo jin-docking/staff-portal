@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Team;
+use App\Models\User;
 use Validator;
+use Auth;
 
 
 class TeamController extends Controller
@@ -15,10 +17,20 @@ class TeamController extends Controller
      */
     public function index()
     {
-        $team = Team::all();
+        // $team = Team::all();
+        // return response()->json($team);
+        $team = Team::with(['user', 'projectManager', 'frontendTeamLead', 'backendTeamLead'])->get();
         return response()->json($team);
     }
 
+
+    public function userTeam()
+    {
+        $user = Auth::user();
+        $teams = $user->teams;
+        
+        return response()->json($teams);
+    }
     /**
      * Show the form for creating a new resource.
      */
@@ -32,28 +44,31 @@ class TeamController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(),[
+        
+         $request->validate([
             'team_name' => 'required|string|max:255',
-            'description' => 'required|string|max:255',
-            'project_manager_id' => 'required|integer',
-            'frontend_team_lead_id' => 'required|integer',
-            'backend_team_lead_id' => 'required|integer',
-            
+            'description' => 'nullable|string',
+            'project_manager_id' => 'required|exists:users,id',
+            'frontend_team_lead_id' => 'required|exists:users,id',
+            'backend_team_lead_id' => 'required|exists:users,id',
         ]);
 
-
-        if($validator->fails()){
-            return response()->json($validator->errors());       
-        }
-
+        
         $team = Team::create([
-            'team_name' => $request->team_name,
-            'description' => $request->description,
-            'project_manager_id' => $request->project_manager_id,
-            'frontend_team_lead_id' => $request->frontend_team_lead_id,
-            'backend_team_lead_id' => $request->backend_team_lead_id,
-         ]);
-         return response()->json(['message' => 'Team Created'], 201);
+            'team_name' => $request->input('team_name'),
+            'description' => $request->input('description'),
+            'project_manager_id' => $request->input('project_manager_id'),
+            'frontend_team_lead_id' => $request->input('frontend_team_lead_id'),
+            'backend_team_lead_id' => $request->input('backend_team_lead_id'),
+        ]);
+
+        $team->user()->attach([
+            $request->input('project_manager_id'),
+            $request->input('frontend_team_lead_id'),
+            $request->input('backend_team_lead_id'),
+        ]);
+
+        return response()->json(['message' => 'Team Created'], 201);
     }
 
     /**
@@ -88,17 +103,28 @@ class TeamController extends Controller
         
         if (Team::where('id', $id)->exists())
         {
-
-            $team = Team::findOrFail($id);
-
-            $user->update([
-                'team_name' => is_null($request->team_name) ? $team->team_name : $request->team_name,
-                'description' => is_null($request->description) ? $team->description : $request->description,
-                'project_manager_id' => is_null($request->project_manager_id) ? $team->project_manager_id : $request->project_manager_id,
-                'frontend_team_lead_id' => is_null($request->frontend_team_lead_id) ? $team->frontend_team_lead_id : $request->frontend_team_lead_id,
-                'backend_team_lead_id' => is_null($request->backend_team_lead_id) ? $team->backend_team_lead_id : $request->backend_team_lead_id,
+            $request->validate([
+                'team_name' => 'required|string',
+                'description' => 'nullable|string',
+                'project_manager_id' => 'required|exists:users,id',
+                'frontend_team_lead_id' => 'required|exists:users,id',
+                'backend_team_lead_id' => 'required|exists:users,id',
             ]);
 
+            
+            $team = Team::findOrFail($id);
+
+            
+            $team->update([
+                'team_name' => $request->input('team_name'),
+                'description' => $request->input('description'),
+                'project_manager_id' => $request->input('project_manager_id'),
+                'frontend_team_lead_id' => $request->input('frontend_team_lead_id'),
+                'backend_team_lead_id' => $request->input('backend_team_lead_id'),
+            ]);
+
+            $team->user()->sync($request->input('user_id', []));
+            
             return response()->json(['message' => 'team updated'], 200);
 
         } else {
@@ -106,7 +132,6 @@ class TeamController extends Controller
             return response()->json(['message' => 'team not found'], 404);
 
         }
-        
     }
 
 

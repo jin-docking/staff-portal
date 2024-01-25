@@ -22,4 +22,18 @@ class Team extends Model
     {
         return $this->belongsToMany(User::class);
     }
+    public function projectManager()
+    {
+        return $this->belongsTo(User::class, 'project_manager_id');
+    }
+
+    public function frontendTeamLead()
+    {
+        return $this->belongsTo(User::class, 'frontend_team_lead_id');
+    }
+
+    public function backendTeamLead()
+    {
+        return $this->belongsTo(User::class, 'backend_team_lead_id');
+    }
 }
