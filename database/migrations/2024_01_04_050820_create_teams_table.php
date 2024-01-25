@@ -16,13 +16,16 @@ return new class extends Migration
             //$table->integer('user_id');
            	$table->string('team_name');
             $table->string('description');
-            $table->integer('project_manager_id');
-		    $table->integer('frontend_team_lead_id');
-		    $table->integer('backend_team_lead_id');
+            $table->unsignedBigInteger('project_manager_id');
+            $table->unsignedBigInteger('frontend_team_lead_id');
+            $table->unsignedBigInteger('backend_team_lead_id');
             $table->timestamps();
 
            /* $table->foreign('user_id')->references('id')->on('users')
                     ->onDelete('cascade');*/
+            $table->foreign('project_manager_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('frontend_team_lead_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('backend_team_lead_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
