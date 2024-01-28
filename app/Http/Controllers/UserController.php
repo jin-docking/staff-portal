@@ -127,6 +127,12 @@ class UserController extends Controller
                 'role' => is_null($request->role) ? $user->role : $request->role,
             ]);
             
+            if ($request->hasFile('profile_pic')) {
+                $imagePath = $request->file('profile_pic')->store('profile_images', 'public');
+            } else {
+                $imagePath = $user->userMeta->profile_pic;
+            }
+
             $user->userMeta()->update([
                 'address' => is_null($request->address) ? $user->userMeta->address : $request->address,
                 'designation' => is_null($request->designation) ? $user->userMeta->designation : $request->designation,
@@ -140,7 +146,7 @@ class UserController extends Controller
                 'pincode' => is_null($request->pincode) ? $user->userMeta->pincode : $request->pincode,
                 'aadhar' => is_null($request->aadhar) ? $user->userMeta->aadhar : $request->aadhar,
                 'pan' => is_null($request->pan) ? $user->userMeta->pan : $request->pan,
-                'profile_pic' =>is_null($request->profile_pic) ? $user->userMeta->profile_pic : $request->profile_pic,
+                'profile_pic' => $imagePath,
         ]);
 
         return response()->json(['message' => 'user updated'], 200);
