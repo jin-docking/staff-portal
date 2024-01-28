@@ -27,7 +27,7 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+   /* public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
             'first_name' => 'required|string|max:255',
@@ -81,7 +81,7 @@ class UserController extends Controller
 
         ]);
         return response()->json(['message' => 'user added'], 201);
-    }
+    }*/
                 
 
     /**
@@ -92,7 +92,7 @@ class UserController extends Controller
         $user = User::find($id);
         if (!empty($user)){
             $usermeta = $user->userMeta;
-            return response()->json($usermeta);
+            return response()->json($user);
         }
         else {
             return response()->json(['message' => 'user not found'], 404);

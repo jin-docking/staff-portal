@@ -17,9 +17,9 @@ class TeamController extends Controller
      */
     public function index()
     {
-        // $team = Team::all();
+         $team = Team::all();
         // return response()->json($team);
-        $team = Team::with(['user', 'projectManager', 'frontendTeamLead', 'backendTeamLead'])->get();
+        //$team = Team::with(['user', 'projectManager', 'frontendTeamLead', 'backendTeamLead'])->get();
         return response()->json($team);
     }
 
@@ -27,9 +27,17 @@ class TeamController extends Controller
     public function userTeam()
     {
         $user = Auth::user();
-        $teams = $user->teams;
-        
-        return response()->json($teams);
+
+        if ($user->teams()->exists()) {
+            
+            $team = $user->teams()->with('user')->get();
+
+            return response()->json($team);
+        } else {
+            
+            return response()->json(['message' => 'team not found'], 404);
+        }
+
     }
     /**
      * Show the form for creating a new resource.
@@ -51,6 +59,8 @@ class TeamController extends Controller
             'project_manager_id' => 'required|exists:users,id',
             'frontend_team_lead_id' => 'required|exists:users,id',
             'backend_team_lead_id' => 'required|exists:users,id',
+            'user_id' => 'required|array',
+            'user_id.*' => 'exists:users,id',
         ]);
 
         
@@ -61,12 +71,13 @@ class TeamController extends Controller
             'frontend_team_lead_id' => $request->input('frontend_team_lead_id'),
             'backend_team_lead_id' => $request->input('backend_team_lead_id'),
         ]);
-
         $team->user()->attach([
             $request->input('project_manager_id'),
             $request->input('frontend_team_lead_id'),
             $request->input('backend_team_lead_id'),
         ]);
+
+        $team->user()->attach($request->input('user_id'));
 
         return response()->json(['message' => 'Team Created'], 201);
     }
@@ -95,6 +106,12 @@ class TeamController extends Controller
         return response()->json(['message' => 'User assigned to team successfully'], 201);
     }
 
+    public function getUsersByRole($role)
+    {
+        $users = User::where('role', $role)->get(['id', 'first_name', 'last_name']);
+
+        return response()->json($users);
+    }
     /**
      * Update the specified resource in storage.
      */
