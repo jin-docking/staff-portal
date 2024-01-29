@@ -30,9 +30,12 @@ class AuthController extends Controller
             'pincode' => 'required|integer',
             'aadhar' => 'required|string|max:255',
             'pan' => 'required|string|max:255',
-            'profile_pic' => 'required',
+            'profile_pic' => 'required|image|mimes:jpeg,png,jpg|max:2048',
     ]);
 
+    if($request->hasFile('profile_pic')) {
+        $imagePath = $request->file('profile_pic')->store('profile_images', 'public');
+    }
 
     if($validator->fails()){
         return response()->json($validator->errors());       
@@ -68,7 +71,7 @@ class AuthController extends Controller
             'pincode' => $request->pincode,
             'aadhar' => $request->aadhar,
             'pan' => $request->pan,
-            'profile_pic' => $request->profile_pic,
+            'profile_pic' => $imagePath,
 
     ]);
 
