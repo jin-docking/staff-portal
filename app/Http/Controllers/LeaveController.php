@@ -75,16 +75,18 @@ class LeaveController extends Controller
     /**
      * Update the specified resource in storage.
      */    
-     public function update(Request $request, $id)
-     {        
-         $leave = Leave::find($id);
-         if (!$leave) {
-             return response()->json(['error' => 'Leave not found'], 404);
-         }
-         $user = Auth::user();
-         if ($user->id !== $leave->user_id) {
+        public function update(Request $request, $id)
+        {        
+            $leave = Leave::find($id);
+            if (!$leave) {
+                return response()->json(['error' => 'Leave not found'], 404);
+            }
+            $user = Auth::user();              
+
+         if ($user->id != $leave->user_id) {
              return response()->json(['error' => 'You do not have permission to update this leave status.'], 403);
          }             
+         
          $request->validate([
             'approval_status' => 'in:approved,rejected',
              'start_date' => 'date',
@@ -102,8 +104,6 @@ class LeaveController extends Controller
         return response()->json(['message' => 'Leave updated successfully', 'data' => $leave]);
      }   
 
-
-
     /**
      * Remove the specified resource from storage.
      */
@@ -113,7 +113,7 @@ class LeaveController extends Controller
     
         $leave = Leave::findOrFail($id);    
 
-        if ($user->id !== $leave->user_id) {
+        if ($user->id != $leave->user_id) {
             return response()->json(['error' => 'You do not have permission to delete this leave.'], 403);
         }    
          //  delete the leave
