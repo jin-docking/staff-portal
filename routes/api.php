@@ -65,7 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/leave', [LeaveController::class, 'store']);
-    Route::put('/leaveupdate/{id}', [LeaveController::class,'update']);
+    Route::get('/leaveupdate/{id}', [LeaveController::class,'update']);
     Route::delete('/leavedelete/{id}', [LeaveController::class,'destroy']);
     Route::get('/leaveview/{id}', [LeaveController::class, 'show']);    
 
