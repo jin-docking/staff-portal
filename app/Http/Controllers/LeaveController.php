@@ -85,6 +85,7 @@ class LeaveController extends Controller
          if ($user->id != $leave->user_id) {
              return response()->json(['error' => 'You do not have permission to update this leave status.'], 403);
          }             
+         
          $request->validate([
             'approval_status' => 'in:approved,rejected',
              'start_date' => 'date',
@@ -109,8 +110,6 @@ class LeaveController extends Controller
            return response()->json(['data' => ['user_id' => $user->id,'leave_id' => $leave->id, 'leave_user_id' => $leave->user_id]]);*/
      }   
 
-
-
     /**
      * Remove the specified resource from storage.
      */
@@ -120,7 +119,7 @@ class LeaveController extends Controller
     
         $leave = Leave::findOrFail($id);    
 
-        if ($user->id !== $leave->user_id) {
+        if ($user->id != $leave->user_id) {
             return response()->json(['error' => 'You do not have permission to delete this leave.'], 403);
         }    
          //  delete the leave
