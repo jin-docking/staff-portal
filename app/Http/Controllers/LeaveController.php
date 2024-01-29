@@ -77,7 +77,7 @@ class LeaveController extends Controller
      */    
      public function update(Request $request, $id)
      {        
-         $leave = Leave::find($id);
+         /*$leave = Leave::find($id);
          if (!$leave) {
              return response()->json(['error' => 'Leave not found'], 404);
          }
@@ -99,7 +99,14 @@ class LeaveController extends Controller
              'end_date' => $request->input('end_date', $leave->end_date),
              'description' => $request->input('description', $leave->description),
          ]);     
-        return response()->json(['message' => 'Leave updated successfully', 'data' => $leave]);
+        return response()->json(['message' => 'Leave updated successfully', 'data' => $leave]);*/
+        $leave = Leave::find($id);
+            if (!$leave) {
+                return response()->json(['error' => 'Leave not found'], 404);
+            }
+            $user = Auth::user();
+            
+           return response()->json(['data' => ['user_id' => $user->id,'leave_id' => $leave->id, 'leave_user_id' => $leave->user_id]]);
      }   
 
 
