@@ -35,7 +35,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     //Route::get('user',[UserController::class, 'index']);
     Route::get('user/{id}',[UserController::class, 'show']);
     Route::get('/userprofile',[UserController::class, 'userProfile']);
-    Route::post('user',[UserController::class, 'store']);
+    Route::post('user/create',[UserController::class, 'store']);
     Route::delete('user/{id}',[UserController::class, 'destroy']);
     Route::put('/update/{id}', [UserController::class, 'update']);
    
@@ -54,7 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/team/{id}', [TeamController::class, 'show']);
     Route::get('/team', [TeamController::class, 'index']);
     Route::post('/team/assign-user/{teamId}', [TeamController::class, 'assignUser']);
-    Route::post('/team',[TeamController::class, 'store']);
+    Route::post('/team/create',[TeamController::class, 'store']);
     Route::delete('/team/{id}',[TeamController::class, 'destroy']);
     Route::put('/team/update/{id}', [TeamController::class, 'update']);
     Route::get('/allroles/{roles}', [TeamController::class, 'getUsersByRole']);

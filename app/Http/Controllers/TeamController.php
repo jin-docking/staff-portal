@@ -126,6 +126,7 @@ class TeamController extends Controller
                 'project_manager_id' => 'required|exists:users,id',
                 'frontend_team_lead_id' => 'required|exists:users,id',
                 'backend_team_lead_id' => 'required|exists:users,id',
+                'user_id' => 'array',
             ]);
 
             
@@ -140,7 +141,19 @@ class TeamController extends Controller
                 'backend_team_lead_id' => $request->input('backend_team_lead_id'),
             ]);
 
-            $team->user()->sync($request->input('user_id', []));
+            $userIds = [
+                $request->input('project_manager_id'),
+                $request->input('frontend_team_lead_id'),
+                $request->input('backend_team_lead_id'),
+            ];
+    
+            
+            if ($request->has('user_id')) {
+                $userIds = array_merge($userIds, $request->input('user_id'));
+            }
+    
+            
+            $team->user()->sync($userIds);
             
             return response()->json(['message' => 'team updated'], 200);
 

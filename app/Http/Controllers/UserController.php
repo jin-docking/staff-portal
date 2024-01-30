@@ -115,45 +115,57 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         
-        if (User::where('id', $id)->exists())
-        {
-            $user = User::findOrFail($id);
+       
+        $user = Auth::user();
 
-            $user->update([
-                'first_name' => is_null($request->first_name) ? $user->first_name : $request->first_name,
-                'last_name' => is_null($request->last_name) ? $user->last_name : $request->last_name,
-                'email' => is_null($request->email) ? $user->email : $request->email,
-                'password' => is_null($request->password) ? $user->password : Hash::make($request->password),
-                'role' => is_null($request->role) ? $user->role : $request->role,
-            ]);
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        if ($user->id == $id || $user->role == 'Admin') {
             
-            if ($request->hasFile('profile_pic')) {
-                $imagePath = $request->file('profile_pic')->store('profile_images', 'public');
+            if (User::where('id', $id)->exists())
+            {
+                $user = User::findOrFail($id);
+
+                $user->update([
+                    'first_name' => $request->input('first_name', $user->first_name),
+                    'last_name' => $request->input('last_name', $user->last_name),
+                    'email' => $request->input('email', $user->email),
+                    'password' => $request->has('password') ? Hash::make($request->input('password')) : $user->password,
+                    'role' => $request->input('role', $user->role),
+                ]);
+            
+                if ($request->hasFile('profile_pic')) {
+                    $imagePath = $request->file('profile_pic')->store('profile_images', 'public');
+                } else {
+                    $imagePath = $user->userMeta->profile_pic;
+                }
+            
+                $user->userMeta()->update([
+                    'address' => $request->input('address', $user->userMeta->address),
+                    'designation' => $request->input('designation', $user->userMeta->designation),
+                    'gender' => $request->input('gender', $user->userMeta->gender),
+                    'join_date' => $request->input('join_date', $user->userMeta->join_date),
+                    'date_of_birth' => $request->input('date_of_birth', $user->userMeta->date_of_birth),
+                    'father' => $request->input('father', $user->userMeta->father),
+                    'mother' => $request->input('mother', $user->userMeta->mother),
+                    'spouse' => $request->input('spouse', $user->userMeta->spouse),
+                    'children' => $request->input('children', $user->userMeta->children),
+                    'pincode' => $request->input('pincode', $user->userMeta->pincode),
+                    'aadhar' => $request->input('aadhar', $user->userMeta->aadhar),
+                    'pan' => $request->input('pan', $user->userMeta->pan),
+                    'profile_pic' => $imagePath,
+                ]);
+            return response()->json(['message' => 'user updated'], 200);
+
             } else {
-                $imagePath = $user->userMeta->profile_pic;
+
+                return response()->json(['message' => 'user not found'], 404);
             }
 
-            $user->userMeta()->update([
-                'address' => is_null($request->address) ? $user->userMeta->address : $request->address,
-                'designation' => is_null($request->designation) ? $user->userMeta->designation : $request->designation,
-                'gender' => is_null($request->gender) ? $user->userMeta->gender : $request->gender,
-                'join_date' => is_null($request->join_date) ? $user->userMeta->join_date : $request->join_date,
-                'date_of_birth' => is_null($request->date_of_birth) ? $user->userMeta->date_of_birth : $request->date_of_birth,
-                'father' => is_null($request->father) ? $user->userMeta->father : $request->father,
-                'mother' => is_null($request->mother) ? $user->userMeta->mother : $request->mother,
-                'spouse' => is_null($request->spouse) ? $user->userMeta->spouse : $request->spouse,
-                'children' => is_null($request->children) ? $user->userMeta->children : $request->children,
-                'pincode' => is_null($request->pincode) ? $user->userMeta->pincode : $request->pincode,
-                'aadhar' => is_null($request->aadhar) ? $user->userMeta->aadhar : $request->aadhar,
-                'pan' => is_null($request->pan) ? $user->userMeta->pan : $request->pan,
-                'profile_pic' => $imagePath,
-        ]);
-
-        return response()->json(['message' => 'user updated'], 200);
-
         } else {
-
-            return response()->json(['message' => 'user not found'], 404);
+            return response()->json(['message' => 'Unauthorized action'], 403);
         }
 
 
