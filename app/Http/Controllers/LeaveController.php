@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Leave;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreleaveRequest;
-use App\Http\Requests\UpdateleaveRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 
@@ -69,8 +67,6 @@ class LeaveController extends Controller
             return response()->json(['message' => 'No leaves found for the specified user'], 404);
         }
     }  
-
-
    
     /**
      * Update the specified resource in storage.
@@ -82,7 +78,7 @@ class LeaveController extends Controller
              return response()->json(['error' => 'Leave not found'], 404);
          }
          $user = Auth::user();
-         if ($user->id !== $leave->user_id) {
+         if ($user->id != $leave->user_id) {
              return response()->json(['error' => 'You do not have permission to update this leave status.'], 403);
          }             
          
@@ -101,13 +97,7 @@ class LeaveController extends Controller
              'description' => $request->input('description', $leave->description),
          ]);     
         return response()->json(['message' => 'Leave updated successfully', 'data' => $leave]);
-        /*$leave = Leave::find($id);
-            if (!$leave) {
-                return response()->json(['error' => 'Leave not found'], 404);
-            }
-            $user = Auth::user();
-            
-           return response()->json(['data' => ['user_id' => $user->id,'leave_id' => $leave->id, 'leave_user_id' => $leave->user_id]]);*/
+       
      }   
 
     /**
