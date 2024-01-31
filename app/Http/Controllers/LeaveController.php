@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Leave;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreleaveRequest;
+use App\Http\Requests\UpdateleaveRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 
@@ -29,6 +31,8 @@ class LeaveController extends Controller
         $user = Auth::user();
 
         $request->validate([
+            'title' => 'required|string',
+            'category' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'required|string',
@@ -36,6 +40,8 @@ class LeaveController extends Controller
 
         $leave =Leave::create([
             'user_id' => $user->id,
+            'title' => $request->title,
+            'category' => $request->category,
             'approval_status' => 'pending',
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
@@ -44,6 +50,7 @@ class LeaveController extends Controller
 
            
         return response()->json(['message' => 'Leave applied successfully', 'data' => $leave]);
+        
         
     }
 
@@ -67,6 +74,38 @@ class LeaveController extends Controller
             return response()->json(['message' => 'No leaves found for the specified user'], 404);
         }
     }  
+    public function showLeave()
+    {
+        $user = Auth::user();
+
+        
+        $leaveRecords = Leave::where('user_id', $user->id)->get();
+
+        $annualLeaveAllowance = 14; 
+        $takenLeaveCount = $leaveRecords->count();
+        $availableLeave = max(0, $annualLeaveAllowance - $takenLeaveCount);
+
+        $uniqueLeaveCategories = $leaveRecords->pluck('category')->unique()->filter();
+        
+        $leaveByCategory = [];
+        $totalLeaveByCategory = [];
+
+        foreach ($uniqueLeaveCategories as $category) {
+            $leaveByCategory[$category] = $leaveRecords->where('category', $category);
+            $totalLeaveByCategory[$category] = $leaveByCategory[$category]->count();
+        }
+
+        return response()->json([
+            'leave_records' => $leaveRecords,
+            'available_leave' => $availableLeave,
+            'leave_by_category' => $leaveByCategory,
+            'total_leave_by_category' => $totalLeaveByCategory,
+        ]);
+
+    
+    }
+
+
    
     /**
      * Update the specified resource in storage.
@@ -83,6 +122,8 @@ class LeaveController extends Controller
          }             
          
          $request->validate([
+            'title' => 'required|string',
+            'category' => 'required|string',
             'approval_status' => 'in:approved,rejected',
              'start_date' => 'date',
              'end_date' => 'date|after_or_equal:start_date',
@@ -91,13 +132,21 @@ class LeaveController extends Controller
          
         //  update the leave
          $leave->update([
+            'title' => $request->input('title', $leave->title),
+            'category' => $request->input('category', $leave->category),
             'approval_status' => $request->input('approval_status', $leave->approval_status),
              'start_date' => $request->input('start_date', $leave->start_date),
              'end_date' => $request->input('end_date', $leave->end_date),
              'description' => $request->input('description', $leave->description),
          ]);     
         return response()->json(['message' => 'Leave updated successfully', 'data' => $leave]);
-       
+        /*$leave = Leave::find($id);
+            if (!$leave) {
+                return response()->json(['error' => 'Leave not found'], 404);
+            }
+            $user = Auth::user();
+            
+           return response()->json(['data' => ['user_id' => $user->id,'leave_id' => $leave->id, 'leave_user_id' => $leave->user_id]]);*/
      }   
 
     /**
