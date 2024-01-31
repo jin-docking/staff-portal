@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\Admin\AdminLeaveController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -71,3 +72,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/showLeave', [LeaveController::class, 'showLeave']);
 
 });
+
+
+
+
+    Route::get('leave', [AdminLeaveController::class, 'index1']);
+    // Add more routes as needed
+
