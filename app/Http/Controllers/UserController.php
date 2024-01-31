@@ -18,7 +18,7 @@ class UserController extends Controller
     public function index()
     {
        
-        $user = User::with('userMeta')->get();
+        $user = User::with('userMeta')->orderBy('first_name')->get();
 
         return response()->json($user);
 

@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('leaves', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
+            $table->string('title');
+            $table->string('category');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
-            $table->string('description');
+            $table->text('description');
             $table->string('approval_status')->default("pending");
             $table->timestamps();
 
