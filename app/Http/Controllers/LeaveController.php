@@ -57,23 +57,18 @@ class LeaveController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($user_id)
+    public function show()
     {
-       
         $user = Auth::user();
-
-        if ($user->id != $user_id) {
-            return response()->json(['error' => 'You do not have permission to view leaves for this user.'], 403);
-        }
     
-        $leaves = Leave::where('user_id', $user_id)->get();
+        $leaves = Leave::where('user_id', $user->id)->get();
     
         if ($leaves->isNotEmpty()) {
             return response()->json($leaves);
         } else {
-            return response()->json(['message' => 'No leaves found for the specified user'], 404);
+            return response()->json(['message' => 'No leaves found for the authenticated user'], 404);
         }
-    }  
+    }
     public function showLeave()
     {
         $user = Auth::user();
@@ -104,8 +99,7 @@ class LeaveController extends Controller
 
     
     }
-
-
+    
    
     /**
      * Update the specified resource in storage.
