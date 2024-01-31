@@ -81,7 +81,7 @@ class LeaveController extends Controller
         
         $leaveRecords = Leave::where('user_id', $user->id)->get();
 
-        $annualLeaveAllowance = 20; 
+        $annualLeaveAllowance = 14; 
         $takenLeaveCount = $leaveRecords->count();
         $availableLeave = max(0, $annualLeaveAllowance - $takenLeaveCount);
 
