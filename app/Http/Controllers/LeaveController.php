@@ -12,16 +12,41 @@ use App\Http\Controllers\Controller;
 
 class LeaveController extends Controller
 {
-    /**
-     * Display a listing of the resource.
+      /**
+     * Display all leaves
      */
     public function index()
     {
-        // Add the following code to the controller file       
-        $leaves = Leave::all();
+        $user = Auth::user();
+    
+        $leaves = Leave::where('user_id', $user->id)->get();
+    
+        if ($leaves->isNotEmpty()) {
 
-        return response()->json($leaves);
-    }      
+            return response()->json($leaves);
+        } else {
+            return response()->json(['message' => 'No leaves found for the authenticated user'], 404);
+        }
+    }
+    /**
+     * Display a specific leave
+     */
+    public function show($id)
+    {                       
+        $leave = Leave::find($id);
+
+        if (!$leave) {
+            return response()->json(['error' => 'Leave not found'], 404);
+        }
+
+        $user = Auth::user();
+        if ($user->id != $leave->user_id) {
+            return response()->json(['error' => 'You do not have permission to update this leave status.'], 403);
+        }     
+    
+        return response()->json($leave);
+    }
+        
 
     /**
      * Store a newly created resource in storage.
@@ -47,28 +72,11 @@ class LeaveController extends Controller
             'end_date' => $request->end_date,
             'description' => $request->description,
         ]);
-
            
         return response()->json(['message' => 'Leave applied successfully', 'data' => $leave]);
-        
-        
+                
     }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show()
-    {
-        $user = Auth::user();
-    
-        $leaves = Leave::where('user_id', $user->id)->get();
-    
-        if ($leaves->isNotEmpty()) {
-            return response()->json($leaves);
-        } else {
-            return response()->json(['message' => 'No leaves found for the authenticated user'], 404);
-        }
-    }
+  
     public function showLeave()
     {
         $user = Auth::user();
@@ -96,10 +104,8 @@ class LeaveController extends Controller
             'leave_by_category' => $leaveByCategory,
             'total_leave_by_category' => $totalLeaveByCategory,
         ]);
-
     
-    }
-    
+    }    
    
     /**
      * Update the specified resource in storage.
