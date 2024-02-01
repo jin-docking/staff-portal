@@ -65,19 +65,22 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+
     Route::post('/leave', [LeaveController::class, 'store']);
     Route::put('/leaveupdate/{id}', [LeaveController::class,'update']);
     Route::delete('/leavedelete/{id}', [LeaveController::class,'destroy']);
-    Route::get('/leaveview', [LeaveController::class, 'show']);    
+    Route::get('/leaveview', [LeaveController::class, 'index']);   
+    Route::get('/leaveview/{id}', [LeaveController::class, 'show']);  
 
 });
 
 Route::middleware(['auth:sanctum','role:Admin'])->group(function () {
-    
+
     Route::get('/leave/view', [AdminLeaveController::class, 'index']);
+    Route::get('/leave/view/{id}', [AdminLeaveController::class, 'show']);  
     Route::put('/leave/update/{id}', [AdminLeaveController::class,'update']);
     Route::delete('/leave/delete/{id}', [AdminLeaveController::class,'destroy']);
-   
+    Route::post('/leave/create/{id}', [AdminLeaveController::class, 'store']);   
    
 });
 

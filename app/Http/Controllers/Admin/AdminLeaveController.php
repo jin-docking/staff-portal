@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Leave;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,7 @@ class AdminLeaveController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-{
+    {
     $admin = Auth::user();    
 
     if ($admin->role != 'Admin') {
@@ -27,8 +28,28 @@ class AdminLeaveController extends Controller
     $leaves = $pendingLeaves->concat($allLeaves->diff($pendingLeaves));
 
     return response()->json($leaves);
-}
+    }
 
+    /**
+     * Display a specific leave
+     */
+
+    public function show($id)
+    {
+        $leave = Leave::find($id);
+    
+        if (!$leave) {
+            return response()->json(['error' => 'Leave not found'], 404);
+        }
+    
+        $user = Auth::user();
+    
+        if ($user->role === 'Admin') {
+            return response()->json($leave);
+        } else {
+            return response()->json(['error' => 'You do not have permission to view this leave.'], 403);
+        }
+    }        
 
      /**
      * Approve or reject a leave request.
@@ -80,6 +101,43 @@ class AdminLeaveController extends Controller
 
         return response()->json(['message' => 'Leave deleted successfully']);
     } 
+
+    
+    public function store(Request $request, $userId)
+    {
+        $admin = Auth::user();
+
+        if ($admin->role != 'Admin') {
+            return response()->json(['error' => 'You do not have permission to create user leave.'], 403);
+        }
+
+        $user = User::find($userId);
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $request->validate([
+            'title' => 'required|string',
+            'category' => 'required|string',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'description' => 'required|string',
+            'approval_status' => 'in:approved,rejected',
+        ]);
+
+        $leave = Leave::create([
+            'user_id' => $user->id,
+            'title' => $request->title,
+            'category' => $request->category,
+            'approval_status' => $request->input('approval_status', 'pending'),
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'description' => $request->description,
+        ]);
+
+        return response()->json(['message' => 'User leave created successfully', 'data' => $leave]);
+    }
 
 
 }
