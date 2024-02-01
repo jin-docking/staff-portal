@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\UserMeta;
+use App\Models\Role;
 
 class UserController extends Controller
 {
@@ -18,7 +19,7 @@ class UserController extends Controller
     public function index()
     {
        
-        $user = User::with('userMeta')->orderBy('first_name')->get();
+        $user = User::with('userMeta')->get();
 
         return response()->json($user);
 
@@ -27,76 +28,19 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-   /* public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(),[
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'role' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            'designation' => 'required|string|max:255',
-            'gender' => 'required|string|max:255',
-            'join_date' => 'required',
-            'date_of_birth' => 'required',
-            'father' => 'required|string|max:255',
-            'mother' => 'required|string|max:255',
-            'pincode' => 'required|integer',
-            'aadhar' => 'required|string|max:255',
-            'pan' => 'required|string|max:255',
-            'profile_pic' => 'required|string|max:255',
-        ]);
-
-
-        if($validator->fails()){
-            return response()->json($validator->errors());       
-        }
-
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-         ]);
-
-        //$date = date('Y-m-d H:i:s');
-
-        $user->userMeta()->create([
-                //'user_id' => $user->id,
-                'address' => $request->address,
-                'designation' => $request->designation,
-                'gender' => $request->gender,
-                'join_date' => $request->join_date,
-                'date_of_birth' => $request->date_of_birth,
-                'father' => $request->father,
-                'mother' => $request->mother,
-                'spouse' => $request->spouse,
-                'children' => $request->children,
-                'pincode' => $request->pincode,
-                'aadhar' => $request->aadhar,
-                'pan' => $request->pan,
-                'profile_pic' => $request->profile_pic,
-
-        ]);
-        return response()->json(['message' => 'user added'], 201);
-    }*/
-                
 
     /**
      * Display the specified resource.
      */
     public function show($id)
     {
-        $user = User::find($id);
-        if (!empty($user)){
-            $usermeta = $user->userMeta;
-            return response()->json($user);
-        }
-        else {
+        $user = User::with('role:id,title')->findorFail($id);
+        if (empty($user)){
             return response()->json(['message' => 'user not found'], 404);
         }
+        
+        $usermeta = $user->userMeta;
+            return response()->json($user);
     }
 
     /**
@@ -105,8 +49,9 @@ class UserController extends Controller
     public function userProfile()
     {   
         $user = Auth::user();
+        $role = $user->role;
         $userMeta = $user->userMeta;
-        return response()->json($user);
+        return response()->json(['user' => $user]);
     }
 
     /**
@@ -132,9 +77,18 @@ class UserController extends Controller
                     'first_name' => $request->input('first_name', $user->first_name),
                     'last_name' => $request->input('last_name', $user->last_name),
                     'email' => $request->input('email', $user->email),
-                    'password' => $request->has('password') ? Hash::make($request->input('password')) : $user->password,
-                    'role' => $request->input('role', $user->role),
+                    'password' => $request->filled('password') ? Hash::make($request->input('password')) : $user->password,
+                    //'role' => $request->input('role', $user->role),
                 ]);
+
+                $role = Role::find($request->input('role_id', $user->role_id));
+
+                if (!$role) {
+                    return response()->json(['error' => 'Role not found'], 404);
+                }
+
+                $user->role()->associate($role);
+                $user->save();
             
                 if ($request->hasFile('profile_pic')) {
                     $imagePath = $request->file('profile_pic')->store('profile_images', 'public');

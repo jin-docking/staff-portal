@@ -8,18 +8,19 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Models\Role;
 
 class AuthController extends Controller
 {
     //Method for registering user
     public function register(Request $request)
-    { 
-        $validator = Validator::make($request->all(),[
+    {
+        $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|string|max:255',
+            'role_id' => 'required|exists:roles,id', 
             'address' => 'required|string|max:255',
             'designation' => 'required|string|max:255',
             'gender' => 'required|string|max:255',
@@ -31,32 +32,36 @@ class AuthController extends Controller
             'aadhar' => 'required|string|max:255',
             'pan' => 'required|string|max:255',
             'profile_pic' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-    ]);
-
-    if($request->hasFile('profile_pic')) {
+        ]);
+    
+    /*if($request->hasFile('profile_pic')) {
         $imagePath = $request->file('profile_pic')->store('profile_images', 'public');
+    }*/
+
+    if ($request->hasFile('profile_pic') && $request->file('profile_pic')->isValid()) {
+        $image = $request->file('profile_pic');
+        $imageName = time() . '.' . $image->extension();
+        $image->move(public_path('images'), $imageName);
+    } else {
+        return response()->json(['error' => 'Invalid or missing profile picture'], 422);
     }
 
-    if($validator->fails()){
-        return response()->json($validator->errors());       
-    }
-
-    $user = User::create([
+    $user = new User([
         'first_name' => $request->first_name,
         'last_name' => $request->last_name,
         'email' => $request->email,
         'password' => Hash::make($request->password),
-        'role' => $request->role,
+        //'role_id' => $request->role_id,
      ]);
 
-   /* if($request->hasfile('image')) {
-        $file = $request->file('image');
-        $extenstion = $file->getClientOriginalExtension();
-        $filename = time().'.'.$extenstion;
-        $file->move('uploads/user/'.$filename);
-     }*/
-    
+     $role = Role::find($request->input('role_id'));
 
+     if (!$role) {
+        return response()->json(['error' => 'Role not found'], 404);
+    }
+
+    $user->role()->associate($role);
+    $user->save();
     $user->userMeta()->create([
             
             'address' => $request->address,
@@ -71,7 +76,7 @@ class AuthController extends Controller
             'pincode' => $request->pincode,
             'aadhar' => $request->aadhar,
             'pan' => $request->pan,
-            'profile_pic' => $imagePath,
+            'profile_pic' => $imageName,
 
     ]);
 
@@ -97,12 +102,11 @@ class AuthController extends Controller
         
         //$user = User::where('email', $request['email'])->firstOrFail();
 
-        $token = Auth::user()->createToken('auth_token')->plainTextToken;
-
-        return response()->json(['access_token' => $token, 'token_type' => 'Bearer', ]);
+        $user = Auth::user();
+        $token = $user->createToken('auth_token')->plainTextToken;
+        return response()->json(['access_token' => $token, 'token_type' => 'Bearer', 'role' => $user->role->title]);
             
     }
-
     // method for user logout and delete token
     public function logout()
     {

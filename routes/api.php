@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\Admin\AdminLeaveController;
 /*
 |--------------------------------------------------------------------------
@@ -80,6 +81,9 @@ Route::middleware(['auth:sanctum','role:Admin'])->group(function () {
    
    
 });
+
+Route::get('/roles', [UserRoleController::class, 'index']);    
+Route::post('/role/create', [UserRoleController::class, 'store']);
 
 
 
