@@ -113,15 +113,29 @@ class TeamController extends Controller
         // $users = Role::where('title', $role);
 
         // return response()->json($users);
-        $roleModel = Role::where('title', $role)->first();
+        // $roleModel = Role::where('title', $role)->first();
 
-        if (!$roleModel) {
-            return response()->json(['message' => 'Role not found'], 404);
+        // if (!$roleModel) {
+        //     return response()->json(['message' => 'Role not found'], 404);
+        // }
+
+        // $users = $roleModel->users;
+
+        // return response()->json(['users' => $users]);
+        $roles = Role::where('title', 'like', '%' . $role . '%')->get();
+
+        if ($roles->isEmpty()) {
+            return response()->json(['message' => 'No matching roles found'], 404);
         }
 
-        $users = $roleModel->users;
+        
+        $users = collect();
 
-        return response()->json(['users' => $users]);
+        foreach ($roles as $roleModel) {
+            $users = $users->merge($roleModel->users);
+        }
+
+        return response()->json(['users' => $users->unique()]);
     }
 
     /**
