@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Role;
 use Validator;
 use Auth;
 
@@ -94,7 +95,7 @@ class TeamController extends Controller
     }
 
     
-    public function assignUser(Request $request, $team_id)
+    /*public function assignUser(Request $request, $team_id)
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -104,14 +105,25 @@ class TeamController extends Controller
         $team->user()->attach($request->user_id);
 
         return response()->json(['message' => 'User assigned to team successfully'], 201);
-    }
+    }*/
+
 
     public function getUsersByRole($role)
     {
-        $users = User::where('role', $role)->get(['id', 'first_name', 'last_name']);
+        // $users = Role::where('title', $role);
 
-        return response()->json($users);
+        // return response()->json($users);
+        $roleModel = Role::where('title', $role)->first();
+
+        if (!$roleModel) {
+            return response()->json(['message' => 'Role not found'], 404);
+        }
+
+        $users = $roleModel->users;
+
+        return response()->json(['users' => $users]);
     }
+
     /**
      * Update the specified resource in storage.
      */
