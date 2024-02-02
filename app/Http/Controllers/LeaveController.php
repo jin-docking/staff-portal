@@ -85,6 +85,7 @@ class LeaveController extends Controller
         $financialYearEnd = now()->startOfYear()->month(3)->day(31);
         
         $leaveRecords = Leave::where('user_id', $user->id)
+        ->where('status', 'approved')
         ->whereBetween('start_date', [$financialYearStart, $financialYearEnd])
         ->get();
 
