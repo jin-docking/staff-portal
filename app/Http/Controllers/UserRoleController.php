@@ -42,14 +42,17 @@ class UserRoleController extends Controller
             'description' => 'required|string',
             'leaves' => 'required|integer',
         ]);
-        
-        $roles = Role::create([
-            'title' => $request->input('title', $roles->title),
-            'description' => $request->input('description', $roles->description),
-            'leaves' => $request->input('leaves', $user->leaves),
-        ]);
+        $role = Role::find($id);
 
-        return response()->json(['message' => 'role updated'], 200);
+        if (!$role) {
+            return response()->json(['message' => 'Role not found'], 404);
+        }
+
+        $role->update([
+            'title' => $request->input('title', $role->title),
+            'description' => $request->input('description', $role->description),
+            'leaves' => $request->input('leaves', $role->leaves),
+        ]);
     }
 
     
