@@ -62,12 +62,12 @@ class UserController extends Controller
         
        
         $user = Auth::user();
-
+         
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        if ($user->id == $id || $user->role == 'Admin') {
+        if ($user->id == $id || $user->role->title == 'Admin') {
             
             if (User::where('id', $id)->exists())
             {

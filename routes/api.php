@@ -34,33 +34,34 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
     //api route for staff management
     
-    //Route::get('user',[UserController::class, 'index']);
+    
     Route::get('user/{id}',[UserController::class, 'show']);
     Route::get('/userprofile',[UserController::class, 'userProfile']);
-    //Route::post('user/create',[UserController::class, 'store']);
-    Route::delete('user/{id}',[UserController::class, 'destroy']);
     Route::put('/update/{id}', [UserController::class, 'update']);
-   
-
     // API route for logout user
     Route::post('/logout', [AuthController::class, 'logout']);
 });
-Route::middleware(['auth:sanctum', 'role:Admin'])->group(function () {
-    //Route::get('/userprofile',[UserController::class, 'userProfile']);
+Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
+    
     Route::get('user',[UserController::class, 'index']);
-    //Route::post('/logout', [AuthController::class, 'logout']);
+    Route::delete('user/{id}',[UserController::class, 'destroy']);
+    
 });
 
 Route::middleware('auth:sanctum')->group(function () {
   
     Route::get('/team/{id}', [TeamController::class, 'show']);
-    Route::get('/team', [TeamController::class, 'index']);
-    Route::post('/team/assign-user/{teamId}', [TeamController::class, 'assignUser']);
+    Route::get('/user-team', [TeamController::class, 'userTeam']);
+    
+});
+
+Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
+    
     Route::post('/team/create',[TeamController::class, 'store']);
     Route::delete('/team/{id}',[TeamController::class, 'destroy']);
     Route::put('/team/update/{id}', [TeamController::class, 'update']);
+    Route::get('/team', [TeamController::class, 'index']);
     Route::get('/allroles/{roles}', [TeamController::class, 'getUsersByRole']);
-    Route::get('/user-team', [TeamController::class, 'userTeam']);
     
 });
 
@@ -87,6 +88,7 @@ Route::middleware(['auth:sanctum','role:Admin'])->group(function () {
 
 Route::get('/roles', [UserRoleController::class, 'index']);    
 Route::post('/role/create', [UserRoleController::class, 'store']);
+Route::put('/role/update/{id}', [UserRoleController::class,'update']);
 
 
 
