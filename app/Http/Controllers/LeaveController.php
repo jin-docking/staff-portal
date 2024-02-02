@@ -81,33 +81,39 @@ class LeaveController extends Controller
     public function showLeave()
     {
         $user = Auth::user();
-        $financialYearStart = now()->startOfYear()->month(4)->day(1);
-        $financialYearEnd = now()->startOfYear()->month(3)->day(31);
+       
+        $currentDate = now();
+
+        
+        $yearStart = $currentDate->month >= 4 ? $currentDate->startOfYear()->addMonths(3) : $currentDate->subYear()->startOfYear()->addMonths(3);
+        $yearEnd = $yearStart->copy()->addYear()->subDay();
+        
         
         $leaveRecords = Leave::where('user_id', $user->id)
-        ->where('status', 'approved')
-        ->whereBetween('start_date', [$financialYearStart, $financialYearEnd])
+        ->where('approval_status', 'approved')
+        ->whereBetween('start_date', [$yearStart, $yearEnd])
         ->get();
 
 
-        $annualLeaveAllowance = $user->role->leaves; 
+        $annualLeave = $user->role->leaves; 
         $takenLeaveCount = $leaveRecords->count();
-        $availableLeave = max(0, $annualLeaveAllowance - $takenLeaveCount);
+        $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
-        $uniqueLeaveCategories = $leaveRecords->pluck('category')->unique()->filter();
+        $leaveCategories = $leaveRecords->pluck('category')->unique()->filter();
         
         $leaveByCategory = [];
         $totalLeaveByCategory = [];
 
-        foreach ($uniqueLeaveCategories as $category) {
+        foreach ($leaveCategories as $category) {
             $leaveByCategory[$category] = $leaveRecords->where('category', $category);
             $totalLeaveByCategory[$category] = $leaveByCategory[$category]->count();
         }
 
         return response()->json([
+            'total_leave' => $annualLeave,
             'leave_records' => $leaveRecords,
             'available_leave' => $availableLeave,
-            'leave_by_category' => $leaveByCategory,
+            //'leave_by_category' => $leaveByCategory,
             'total_leave_by_category' => $totalLeaveByCategory,
         ]);
     
