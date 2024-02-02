@@ -17,9 +17,9 @@ class AdminLeaveController extends Controller
     {
     $admin = Auth::user();    
 
-    if ($admin->role != 'Admin') {
-        return response()->json(['error' => 'You do not have permission to view leave requests'], 403);
-    }
+    // if ($admin->role->title != 'Admin') {
+    //     return response()->json(['error' => 'You do not have permission to view leave requests'], 403);
+    // }
  
     $pendingLeaves = Leave::where('approval_status', 'pending')->get();
 
@@ -51,12 +51,14 @@ class AdminLeaveController extends Controller
         }
     
         $user = Auth::user();
+
+        return response()->json($leave);
     
-        if ($user->role === 'Admin') {
-            return response()->json($leave);
-        } else {
-            return response()->json(['error' => 'You do not have permission to view this leave.'], 403);
-        }
+        // if ($user->role->title === 'Admin') {
+           
+        // } else {
+        //     return response()->json(['error' => 'You do not have permission to view this leave.'], 403);
+        // }
     }        
 
      /**
@@ -66,9 +68,9 @@ class AdminLeaveController extends Controller
     {
         $admin = Auth::user();
 
-        if ($admin->role != 'Admin') {
-            return response()->json(['error' => 'You do not have permission to update leave status.'], 403);
-        }
+        // if ($admin->role->title != 'Admin') {
+        //     return response()->json(['error' => 'You do not have permission to update leave status.'], 403);
+        // }
 
         $request->validate([
             'approval_status' => 'required|in:approved,rejected',
@@ -95,9 +97,9 @@ class AdminLeaveController extends Controller
     {
         $admin = Auth::user();
 
-        if ($admin->role != 'Admin') {
-            return response()->json(['error' => 'You do not have permission to delete leave requests.'], 403);
-        }
+        // if ($admin->role->title != 'Admin') {
+        //     return response()->json(['error' => 'You do not have permission to delete leave requests.'], 403);
+        // }
 
         $leave = Leave::find($id);
 
@@ -115,9 +117,9 @@ class AdminLeaveController extends Controller
     {
         $admin = Auth::user();
 
-        if ($admin->role != 'Admin') {
-            return response()->json(['error' => 'You do not have permission to create user leave.'], 403);
-        }
+        // if ($admin->role != 'Admin') {
+        //     return response()->json(['error' => 'You do not have permission to create user leave.'], 403);
+        // }
 
         $user = User::find($userId);
 
@@ -132,13 +134,9 @@ class AdminLeaveController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'required|string',
             'approval_status' => 'in:approved,rejected',
-            'first_name' => 'required|string', 
-            'role' => 'required|string',  
-            
+                        
         ]);
-        if ($user->first_name != $request->first_name || $user->role != $request->role) {
-            return response()->json(['error' => 'Selected user details do not match.'], 422);
-        }
+        
         $leave = Leave::create([
             'user_id' => $user->id,
             'title' => $request->title,
@@ -147,8 +145,7 @@ class AdminLeaveController extends Controller
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'description' => $request->description,
-            'first_name' => $request->first_name,
-            'role' => $request->role,
+                     
 
         ]);
 
