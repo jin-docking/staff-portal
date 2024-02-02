@@ -27,6 +27,14 @@ class AdminLeaveController extends Controller
 
     $leaves = $pendingLeaves->concat($allLeaves->diff($pendingLeaves));
 
+    foreach ($leaves as $leave) {
+        $user = User::find($leave->user_id); 
+        $leave->first_name = $user->first_name;
+        $leave->last_name = $user->last_name; 
+        $leave->role = $user->role;
+
+    }
+
     return response()->json($leaves);
     }
 
@@ -124,8 +132,13 @@ class AdminLeaveController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'required|string',
             'approval_status' => 'in:approved,rejected',
+            'first_name' => 'required|string', 
+            'role' => 'required|string',  
+            
         ]);
-
+        if ($user->first_name != $request->first_name || $user->role != $request->role) {
+            return response()->json(['error' => 'Selected user details do not match.'], 422);
+        }
         $leave = Leave::create([
             'user_id' => $user->id,
             'title' => $request->title,
@@ -134,9 +147,12 @@ class AdminLeaveController extends Controller
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'description' => $request->description,
+            'first_name' => $request->first_name,
+            'role' => $request->role,
+
         ]);
 
-        return response()->json(['message' => 'User leave created successfully', 'data' => $leave]);
+        return response()->json(['message' => 'User leave created successfully','data' => $leave]);
     }
 
 
