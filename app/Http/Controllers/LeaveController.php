@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Leave;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreleaveRequest;
 use App\Http\Requests\UpdateleaveRequest;
@@ -80,11 +81,15 @@ class LeaveController extends Controller
     public function showLeave()
     {
         $user = Auth::user();
-
+        $financialYearStart = now()->startOfYear()->month(4)->day(1);
+        $financialYearEnd = now()->startOfYear()->month(3)->day(31);
         
-        $leaveRecords = Leave::where('user_id', $user->id)->get();
+        $leaveRecords = Leave::where('user_id', $user->id)
+        ->whereBetween('start_date', [$financialYearStart, $financialYearEnd])
+        ->get();
 
-        $annualLeaveAllowance = 14; 
+
+        $annualLeaveAllowance = $user->role->leaves; 
         $takenLeaveCount = $leaveRecords->count();
         $availableLeave = max(0, $annualLeaveAllowance - $takenLeaveCount);
 
@@ -124,20 +129,19 @@ class LeaveController extends Controller
          $request->validate([
             'title' => 'required|string',
             'category' => 'required|string',
-            'approval_status' => 'in:approved,rejected',
-             'start_date' => 'date',
-             'end_date' => 'date|after_or_equal:start_date',
-             'description' => 'string',
+            'start_date' => 'date',
+            'end_date' => 'date|after_or_equal:start_date',
+            'description' => 'string',
          ]);     
          
         //  update the leave
          $leave->update([
             'title' => $request->input('title', $leave->title),
             'category' => $request->input('category', $leave->category),
-            'approval_status' => $request->input('approval_status', $leave->approval_status),
-             'start_date' => $request->input('start_date', $leave->start_date),
-             'end_date' => $request->input('end_date', $leave->end_date),
-             'description' => $request->input('description', $leave->description),
+            'approval_status' => 'pending',
+            'start_date' => $request->input('start_date', $leave->start_date),
+            'end_date' => $request->input('end_date', $leave->end_date),
+            'description' => $request->input('description', $leave->description),
          ]);     
         return response()->json(['message' => 'Leave updated successfully', 'data' => $leave]);
         /*$leave = Leave::find($id);
