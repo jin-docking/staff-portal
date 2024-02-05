@@ -15,11 +15,7 @@ class AdminLeaveController extends Controller
      */
     public function index()
     {
-    $admin = Auth::user();    
-
-    // if ($admin->role->title != 'Admin') {
-    //     return response()->json(['error' => 'You do not have permission to view leave requests'], 403);
-    // }
+    $admin = Auth::user(); 
  
     $pendingLeaves = Leave::where('approval_status', 'pending')->get();
 
@@ -32,6 +28,9 @@ class AdminLeaveController extends Controller
         $leave->first_name = $user->first_name;
         $leave->last_name = $user->last_name; 
         $leave->role = $user->role;
+
+        $creator = User::find($leave->created_by);
+        $leave->creator_name = $creator ? $creator->first_name . ' ' . $creator->last_name : null;
 
     }
 
@@ -52,13 +51,11 @@ class AdminLeaveController extends Controller
     
         $user = Auth::user();
 
+        $creator = User::find($leave->created_by);
+        $leave->creator_name = $creator ? $creator->first_name . ' ' . $creator->last_name : null;
+
         return response()->json($leave);
     
-        // if ($user->role->title === 'Admin') {
-           
-        // } else {
-        //     return response()->json(['error' => 'You do not have permission to view this leave.'], 403);
-        // }
     }        
 
      /**
@@ -117,10 +114,6 @@ class AdminLeaveController extends Controller
     {
         $admin = Auth::user();
 
-        // if ($admin->role != 'Admin') {
-        //     return response()->json(['error' => 'You do not have permission to create user leave.'], 403);
-        // }
-
         $user = User::find($userId);
 
         if (!$user) {
@@ -139,7 +132,7 @@ class AdminLeaveController extends Controller
         
         $leave = Leave::create([
             'user_id' => $user->id,
-            'createdby_id' => $admin->id,
+            'created_by' => $admin->id,
             'title' => $request->title,
             'category' => $request->category,
             'approval_status' => $request->input('approval_status', 'pending'),
