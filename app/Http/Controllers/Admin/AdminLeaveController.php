@@ -139,17 +139,24 @@ class AdminLeaveController extends Controller
         
         $leave = Leave::create([
             'user_id' => $user->id,
+            'createdby_id' => $admin->id,
             'title' => $request->title,
             'category' => $request->category,
             'approval_status' => $request->input('approval_status', 'pending'),
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'description' => $request->description,
-                     
+            'description' => $request->description,                
 
+        ]);       
+
+        return response()->json([
+            'message' => 'User leave created successfullydd',
+            'data' => [
+                'leave' => $leave,
+                'creator_name' => $admin->first_name,
+                'user_name' => $user->first_name,
+            ],
         ]);
-
-        return response()->json(['message' => 'User leave created successfully','data' => $leave]);
     }
 
 

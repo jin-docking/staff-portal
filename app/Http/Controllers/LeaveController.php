@@ -46,8 +46,7 @@ class LeaveController extends Controller
         }     
     
         return response()->json($leave);
-    }
-        
+    }        
 
     /**
      * Store a newly created resource in storage.
@@ -65,7 +64,8 @@ class LeaveController extends Controller
         ]);      
 
         $leave =Leave::create([
-            'user_id' => $user->id,
+            'user_id' => $user->id,   
+            'createdby_id' => $user->id,                                 
             'title' => $request->title,
             'category' => $request->category,
             'approval_status' => 'pending',
@@ -74,8 +74,12 @@ class LeaveController extends Controller
             'description' => $request->description,
         ]);
            
-        return response()->json(['message' => 'Leave applied successfully', 'data' => $leave]);
-                
+        return response()->json(['message' => 'Leave applied successfully',    
+            'data' => [
+                'leave' => $leave,
+                'creator_name' => $user->first_name,
+            ],
+        ]);
     }
   
     public function showLeave()
