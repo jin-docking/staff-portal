@@ -18,7 +18,7 @@ class TeamController extends Controller
      */
     public function index()
     {
-         $team = Team::all();
+         $team = Team::with('user.role:id,title')->get();
         // return response()->json($team);
         //$team = Team::with(['user', 'projectManager', 'frontendTeamLead', 'backendTeamLead'])->get();
         return response()->json($team);
@@ -29,15 +29,61 @@ class TeamController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->teams()->exists()) {
+        // if ($user->teams()->exists()) {
             
-            $team = $user->teams()->with('user')->get();
+        //     $team = $user->teams()->with('user')->get();
 
-            return response()->json($team);
-        } else {
+        //     return response()->json($team);
+        // } else {
             
-            return response()->json(['message' => 'team not found'], 404);
+        //     return response()->json(['message' => 'team not found'], 404);
+        // }
+        $team = Team::with('user')->find($user->id);
+        //$team = $user->teams()->with('user')->get();
+
+        if (!$team) {
+            return response()->json(['message' => 'Team not found'], 404);
         }
+
+        
+        $projectManager = $team->user()->find($team->project_manager_id);
+        $frontendTeamLead = $team->user()->find($team->frontend_team_lead_id);
+        $backendTeamLead = $team->user()->find($team->backend_team_lead_id);
+
+        
+        $teamHierarchy = [
+            'team_id' => $team->id,
+            'team_name' => $team->team_name,
+            'description' => $team->description,
+            'project_manager' => [
+                'user_id' => $projectManager->id,
+                'first_name' => $projectManager->first_name,
+                'last_name' => $projectManager->last_name,
+                
+            ],
+            'frontend_team_lead' => [
+                'user_id' => $frontendTeamLead->id,
+                'first_name' => $frontendTeamLead->first_name,
+                'last_name' => $frontendTeamLead->last_name,
+                
+            ],
+            'backend_team_lead' => [
+                'user_id' => $backendTeamLead->id,
+                'first_name' => $backendTeamLead->first_name,
+                'last_name' => $backendTeamLead->last_name,
+                
+            ],
+            'team_members' => $team->user->map(function ($member) {
+                return [
+                    'user_id' => $member->id,
+                    'first_name' => $member->first_name,
+                    'last_name' => $member->last_name,
+                    
+                ];
+            }),
+        ];
+
+        return response()->json($teamHierarchy, 200);
 
     }
     /**
