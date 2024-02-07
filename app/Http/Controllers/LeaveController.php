@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Leave;
 use App\Models\Role;
 use Illuminate\Http\Request;
+use App\Models\User;
 use App\Http\Requests\StoreleaveRequest;
 use App\Http\Requests\UpdateleaveRequest;
 use Illuminate\Support\Facades\Auth;
@@ -21,8 +22,15 @@ class LeaveController extends Controller
         $user = Auth::user();
     
         $leaves = Leave::where('user_id', $user->id)->get();
+
+       
     
         if ($leaves->isNotEmpty()) {
+
+            foreach ($leaves as $leave) {
+                $creator = User::find($leave->created_by);
+                $leave->creator_name = $creator ? $creator->first_name . ' ' . $creator->last_name : null;
+            }
 
             return response()->json($leaves);
         } else {
@@ -44,6 +52,8 @@ class LeaveController extends Controller
         if ($user->id != $leave->user_id) {
             return response()->json(['error' => 'You do not have permission to update this leave status.'], 403);
         }     
+        $creator = User::find($leave->created_by);
+        $leave->creator_name = $creator ? $creator->first_name . ' ' . $creator->last_name : null;
     
         return response()->json($leave);
     }        
@@ -65,7 +75,7 @@ class LeaveController extends Controller
 
         $leave =Leave::create([
             'user_id' => $user->id,   
-            'createdby_id' => $user->id,                                 
+            'created_by' => $user->id,                                 
             'title' => $request->title,
             'category' => $request->category,
             'approval_status' => 'pending',

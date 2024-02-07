@@ -11,7 +11,7 @@ class Leave extends Model
 
     protected $fillable = [
         'user_id',
-        'createdby_id',
+        'created_by',
         'title',
         'category',
         'start_date',
