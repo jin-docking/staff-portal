@@ -19,15 +19,15 @@ class TeamController extends Controller
     public function index()
     {
          $team = Team::with('user.role:id,title')->get();
-        // return response()->json($team);
+        //return response()->json($team);
         //$team = Team::with(['user', 'projectManager', 'frontendTeamLead', 'backendTeamLead'])->get();
         return response()->json($team);
     }
 
 
-    public function userTeam()
+    public function userTeam($id)
     {
-        $user = Auth::user();
+        //$user = Auth::user();
 
         // if ($user->teams()->exists()) {
             
@@ -38,7 +38,7 @@ class TeamController extends Controller
             
         //     return response()->json(['message' => 'team not found'], 404);
         // }
-        $team = Team::with('user')->find($user->id);
+        $team = Team::with('user')->find($id);
         //$team = $user->teams()->with('user')->get();
 
         if (!$team) {
@@ -100,17 +100,18 @@ class TeamController extends Controller
     public function store(Request $request)
     {
         
-         $request->validate([
+        $request->validate([
             'team_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'project_manager_id' => 'required|exists:users,id',
             'frontend_team_lead_id' => 'required|exists:users,id',
             'backend_team_lead_id' => 'required|exists:users,id',
-            'user_id' => 'required|array',
-            'user_id.*' => 'exists:users,id',
+            'frontend_developers' => 'required|array',
+            'frontend_developers.*' => 'exists:users,id',
+            'backend_developers' => 'required|array',
+            'backend_developers.*' => 'exists:users,id',
         ]);
-
-        
+    
         $team = Team::create([
             'team_name' => $request->input('team_name'),
             'description' => $request->input('description'),
@@ -118,14 +119,16 @@ class TeamController extends Controller
             'frontend_team_lead_id' => $request->input('frontend_team_lead_id'),
             'backend_team_lead_id' => $request->input('backend_team_lead_id'),
         ]);
+    
         $team->user()->attach([
             $request->input('project_manager_id'),
             $request->input('frontend_team_lead_id'),
             $request->input('backend_team_lead_id'),
         ]);
-
-        $team->user()->attach($request->input('user_id'));
-
+    
+        $team->user()->attach($request->input('frontend_developers'));
+        $team->user()->attach($request->input('backend_developers'));
+    
         return response()->json(['message' => 'Team Created'], 201);
     }
 
@@ -140,34 +143,10 @@ class TeamController extends Controller
         return response()->json($team);
     }
 
-    
-    /*public function assignUser(Request $request, $team_id)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
-
-        $team = Team::findOrFail($team_id);
-        $team->user()->attach($request->user_id);
-
-        return response()->json(['message' => 'User assigned to team successfully'], 201);
-    }*/
-
 
     public function getUsersByRole($role)
     {
-        // $users = Role::where('title', $role);
-
-        // return response()->json($users);
-        // $roleModel = Role::where('title', $role)->first();
-
-        // if (!$roleModel) {
-        //     return response()->json(['message' => 'Role not found'], 404);
-        // }
-
-        // $users = $roleModel->users;
-
-        // return response()->json(['users' => $users]);
+    
         $roles = Role::where('title', 'like', '%' . $role . '%')->get();
 
         if ($roles->isEmpty()) {
@@ -193,18 +172,19 @@ class TeamController extends Controller
         if (Team::where('id', $id)->exists())
         {
             $request->validate([
-                'team_name' => 'required|string',
+                'team_name' => 'required|string|max:255',
                 'description' => 'nullable|string',
                 'project_manager_id' => 'required|exists:users,id',
                 'frontend_team_lead_id' => 'required|exists:users,id',
                 'backend_team_lead_id' => 'required|exists:users,id',
-                'user_id' => 'array',
+                'frontend_developers' => 'required|array',
+                'frontend_developers.*' => 'exists:users,id',
+                'backend_developers' => 'required|array',
+                'backend_developers.*' => 'exists:users,id',
             ]);
-
-            
+        
             $team = Team::findOrFail($id);
-
-            
+        
             $team->update([
                 'team_name' => $request->input('team_name'),
                 'description' => $request->input('description'),
@@ -212,22 +192,24 @@ class TeamController extends Controller
                 'frontend_team_lead_id' => $request->input('frontend_team_lead_id'),
                 'backend_team_lead_id' => $request->input('backend_team_lead_id'),
             ]);
-
-            $userIds = [
-                $request->input('project_manager_id'),
-                $request->input('frontend_team_lead_id'),
-                $request->input('backend_team_lead_id'),
+        
+            $members = [
+                $request->input('project_manager_id') => [],
+                $request->input('frontend_team_lead_id') => [],
+                $request->input('backend_team_lead_id') => [],
             ];
-    
-            
-            if ($request->has('user_id')) {
-                $userIds = array_merge($userIds, $request->input('user_id'));
+        
+            foreach ($request->input('frontend_developers') as $developerId) {
+                $members[$developerId] = [];
             }
-    
-            
-            $team->user()->sync($userIds);
-            
-            return response()->json(['message' => 'team updated'], 200);
+        
+            foreach ($request->input('backend_developers') as $developerId) {
+                $members[$developerId] = [];
+            }
+        
+            $team->user()->sync($members);
+        
+            return response()->json(['message' => 'Team Updated'], 200);
 
         } else {
 
@@ -237,16 +219,6 @@ class TeamController extends Controller
     }
 
 
-    // public function detachUser(Request $request, $team_id, $user_id)
-    // {
-       
-    //     $team = Team::findOrFail($team_id);
-    //     $user = User::findOrFail($user_id);
-
-    //     $team->user()->datach($user->id);
-
-    //     return response()->json(["message" => "User removed from team"]);
-    // }
     /**
      * Remove the specified resource from storage.
      */

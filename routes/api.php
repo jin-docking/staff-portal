@@ -64,6 +64,7 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::get('/allroles/{roles}', [TeamController::class, 'getUsersByRole']);
     Route::put('/role/update/{id}', [UserRoleController::class,'update']);
     Route::get('/role/show/{id}', [UserRoleController::class, 'show']);  
+    Route::get('/roles', [UserRoleController::class, 'index']);  
     
 });
 
@@ -90,10 +91,10 @@ Route::middleware(['auth:sanctum','role:Admin'])->group(function () {
 });
 
 
-Route::get('/roles', [UserRoleController::class, 'index']);    
+//Route::get('/roles', [UserRoleController::class, 'index']);    
 Route::post('/role/create', [UserRoleController::class, 'store']);
-Route::put('/role/update/{id}', [UserRoleController::class,'update']);
-Route::get('/role/show/{id}', [UserRoleController::class, 'show']);   
+//Route::put('/role/update/{id}', [UserRoleController::class,'update']);
+//Route::get('/role/show/{id}', [UserRoleController::class, 'show']);   
 
 
 
