@@ -55,5 +55,9 @@ class UserRoleController extends Controller
         ]);
     }
 
-    
+    public function show($id)
+    {
+        $role = Role::findorFail($id);
+        return response()->json($role);
+    }
 }

@@ -13,7 +13,6 @@ class UserMeta extends Model
         'user_id',
         'address',
         'gender',
-        'designation',
         'join_date',
         'date_of_birth',
         'father',
