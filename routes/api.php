@@ -51,7 +51,7 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
   
     Route::get('/team/{id}', [TeamController::class, 'show']);
-    Route::get('/user-team/{id}', [TeamController::class, 'userTeam']);
+    Route::get('/user-team', [TeamController::class, 'userTeam']);
     
 });
 

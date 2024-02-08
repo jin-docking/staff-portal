@@ -25,67 +25,55 @@ class TeamController extends Controller
     }
 
 
-    public function userTeam($id)
+    public function userTeam()
     {
-        //$user = Auth::user();
+        $user = Auth::user();
 
-        // if ($user->teams()->exists()) {
-            
-        //     $team = $user->teams()->with('user')->get();
-
-        //     return response()->json($team);
-        // } else {
-            
-        //     return response()->json(['message' => 'team not found'], 404);
-        // }
-        $team = Team::with('user')->find($id);
-        //$team = $user->teams()->with('user')->get();
-
-        if (!$team) {
-            return response()->json(['message' => 'Team not found'], 404);
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated'], 401);
         }
 
-        
-        $projectManager = $team->user()->find($team->project_manager_id);
-        $frontendTeamLead = $team->user()->find($team->frontend_team_lead_id);
-        $backendTeamLead = $team->user()->find($team->backend_team_lead_id);
+        $teams = $user->teams()->with('user.role')->get();
 
-        
-        $teamHierarchy = [
-            'team_id' => $team->id,
-            'team_name' => $team->team_name,
-            'description' => $team->description,
-            'project_manager' => [
-                'user_id' => $projectManager->id,
-                'first_name' => $projectManager->first_name,
-                'last_name' => $projectManager->last_name,
-                
-            ],
-            'frontend_team_lead' => [
-                'user_id' => $frontendTeamLead->id,
-                'first_name' => $frontendTeamLead->first_name,
-                'last_name' => $frontendTeamLead->last_name,
-                
-            ],
-            'backend_team_lead' => [
-                'user_id' => $backendTeamLead->id,
-                'first_name' => $backendTeamLead->first_name,
-                'last_name' => $backendTeamLead->last_name,
-                
-            ],
-            'team_members' => $team->user->map(function ($member) {
-                return [
-                    'user_id' => $member->id,
-                    'first_name' => $member->first_name,
-                    'last_name' => $member->last_name,
-                    
-                ];
-            }),
-        ];
+        if ($teams->isEmpty()) {
+            return response()->json(['message' => 'User does not belong to any team'], 404);
+        }
 
-        return response()->json($teamHierarchy, 200);
+        $hierarchies = [];
 
+        foreach ($teams as $team) {
+            $hierarchy = [
+                'team_id' => $team->id,
+                'team_name' => $team->team_name,
+                'description' => $team->description,
+                'project_manager' => [],
+                'frontend_team_lead' => [],
+                'backend_team_lead' => [],
+                'frontend_developers' => [],
+                'backend_developers' => []
+            ];
+
+            foreach ($team->user as $member) {
+                if ($member->role->title === 'project manager') {
+                    $hierarchy['project_manager'] = $member;
+                } elseif ($member->role->title === 'frontend teamlead') {
+                    $hierarchy['frontend_team_lead'] = $member;
+                } elseif ($member->role->title === 'backend teamlead') {
+                    $hierarchy['backend_team_lead'] = $member;
+                } elseif (strpos($member->role->title, 'frontend') !== false) {
+                    $hierarchy['frontend_developers'][] = $member;
+                } elseif (strpos($user->role->title, 'backend developer') !== false) {
+                    $hierarchy['backend_developers'][] = $member;
+                }
+            }
+
+            $hierarchies[] = $hierarchy;
+        }
+
+        return response()->json(['teams' => $hierarchies]);
     }
+        
+    
     /**
      * Show the form for creating a new resource.
      */
