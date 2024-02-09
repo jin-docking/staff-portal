@@ -128,16 +128,16 @@ class TeamController extends Controller
         //$team = Team::findOrFail($id);
         //$team = Team::with('user')->findOrFail($id)->get();
         //$user = $team->user;
-        $team = Team::with('user.role')->find($id);
+        $team = Team::with('user.role:id,title')->find($id);
         //$teamMembers = $team->user;
 
         
         $teamMembersWithRoles = $team->user->map(function ($member) {
              return [
                 'user_id' => $member->id,
-                 'first_name' => $member->first_name,
-                 'last_name' => $member->last_name, 
-                 'role' => $member->role->title, 
+                'first_name' => $member->first_name,
+                'last_name' => $member->last_name, 
+                'role' => $member->role->title, 
             ];
          });
 
