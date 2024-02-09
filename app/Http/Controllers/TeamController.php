@@ -18,7 +18,7 @@ class TeamController extends Controller
      */
     public function index()
     {
-         $team = Team::with('user.role:id,title')->get();
+        $team = Team::with('user.role:id,title')->get();
         //return response()->json($team);
         //$team = Team::with(['user', 'projectManager', 'frontendTeamLead', 'backendTeamLead'])->get();
         return response()->json($team);
@@ -54,15 +54,15 @@ class TeamController extends Controller
             ];
 
             foreach ($team->user as $member) {
-                if ($member->role->title === 'project manager') {
+                if ($member->role->title == 'project manager') {
                     $hierarchy['project_manager'] = $member;
-                } elseif ($member->role->title === 'frontend teamlead') {
+                } elseif ($member->role->title == 'frontend teamlead') {
                     $hierarchy['frontend_team_lead'] = $member;
-                } elseif ($member->role->title === 'backend teamlead') {
+                } elseif ($member->role->title == 'backend teamlead') {
                     $hierarchy['backend_team_lead'] = $member;
                 } elseif (strpos($member->role->title, 'frontend') !== false) {
                     $hierarchy['frontend_developers'][] = $member;
-                } elseif (strpos($user->role->title, 'backend developer') !== false) {
+                } else {
                     $hierarchy['backend_developers'][] = $member;
                 }
             }
