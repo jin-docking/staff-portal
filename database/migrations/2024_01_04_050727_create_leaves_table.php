@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('leaves', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('createdby_id');
+            $table->unsignedBigInteger('created_by');
             $table->string('title');
             $table->string('category');
             $table->dateTime('start_date');
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')
                     ->onDelete('cascade');
 
-            $table->foreign('createdby_id')->references('id')->on('users')
+            $table->foreign('created_by')->references('id')->on('users')
                 ->onDelete('cascade');
         });
     }
