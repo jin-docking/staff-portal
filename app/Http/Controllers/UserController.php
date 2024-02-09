@@ -54,6 +54,26 @@ class UserController extends Controller
         return response()->json(['user' => $user]);
     }
 
+
+    public function getProfilePic($userId)
+    {
+        $user = User::findOrFail($userId);
+
+        
+        $imageName = $user->userMeta->profile_pic;
+
+        $imagePath = public_path('images/') . $imageName;
+
+        
+        if (!file_exists($imagePath)) {
+            return response()->json(['error' => 'Image not found'], 404);
+        }
+
+        
+        return response()->file($imagePath);
+    }
+
+
     /**
      * Update the specified resource in storage.
      */
@@ -90,15 +110,17 @@ class UserController extends Controller
                 $user->role()->associate($role);
                 $user->save();
             
-                if ($request->hasFile('profile_pic')) {
-                    $imagePath = $request->file('profile_pic')->store('profile_images', 'public');
+                if ($request->hasFile('profile_pic') && $request->file('profile_pic')->isValid()) {
+                    $image = $request->file('profile_pic');
+                    $imageName = time() . '.' . $image->extension();
+                    $image->move(public_path('images'), $imageName);
                 } else {
-                    $imagePath = $user->userMeta->profile_pic;
+                    $imageName = $user->userMeta->profile_pic;
                 }
             
                 $user->userMeta()->update([
                     'address' => $request->input('address', $user->userMeta->address),
-                    'designation' => $request->input('designation', $user->userMeta->designation),
+
                     'gender' => $request->input('gender', $user->userMeta->gender),
                     'join_date' => $request->input('join_date', $user->userMeta->join_date),
                     'date_of_birth' => $request->input('date_of_birth', $user->userMeta->date_of_birth),
@@ -109,7 +131,7 @@ class UserController extends Controller
                     'pincode' => $request->input('pincode', $user->userMeta->pincode),
                     'aadhar' => $request->input('aadhar', $user->userMeta->aadhar),
                     'pan' => $request->input('pan', $user->userMeta->pan),
-                    'profile_pic' => $imagePath,
+                    'profile_pic' => $imageName,
                 ]);
             return response()->json(['message' => 'user updated'], 200);
 
