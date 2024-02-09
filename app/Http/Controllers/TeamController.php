@@ -18,7 +18,7 @@ class TeamController extends Controller
      */
     public function index()
     {
-         $team = Team::with('user.role:id,title')->get();
+        $team = Team::with('user.role:id,title')->get();
         //return response()->json($team);
         //$team = Team::with(['user', 'projectManager', 'frontendTeamLead', 'backendTeamLead'])->get();
         return response()->json($team);
