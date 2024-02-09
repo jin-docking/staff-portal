@@ -51,10 +51,28 @@ class UserController extends Controller
         $user = Auth::user();
         $role = $user->role;
         $userMeta = $user->userMeta;
-        // $imagePath
-        // $imageUrl = 'C:/Users/mmidh/OneDrive/Desktop/laravel-projects/staff-portal/public/images' . $user->profile_pic;
-        return response()->json(['user' => $user, 'image' => $imageUrl]);
+        return response()->json(['user' => $user]);
     }
+
+
+    public function getProfilePic($userId)
+    {
+        $user = User::findOrFail($userId);
+
+        
+        $imageName = $user->userMeta->profile_pic;
+
+        $imagePath = public_path('images/') . $imageName;
+
+        
+        if (!file_exists($imagePath)) {
+            return response()->json(['error' => 'Image not found'], 404);
+        }
+
+        
+        return response()->file($imagePath);
+    }
+
 
     /**
      * Update the specified resource in storage.
@@ -102,6 +120,7 @@ class UserController extends Controller
             
                 $user->userMeta()->update([
                     'address' => $request->input('address', $user->userMeta->address),
+
                     'gender' => $request->input('gender', $user->userMeta->gender),
                     'join_date' => $request->input('join_date', $user->userMeta->join_date),
                     'date_of_birth' => $request->input('date_of_birth', $user->userMeta->date_of_birth),
