@@ -22,6 +22,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:8',
             'role_id' => 'required|exists:roles,id', 
             'address' => 'required|string|max:255',
+            'contact_no' => 'required|integer',
             'gender' => 'required|string|max:255',
             'join_date' => 'required',
             'date_of_birth' => 'required',
@@ -62,8 +63,8 @@ class AuthController extends Controller
     $user->role()->associate($role);
     $user->save();
     $user->userMeta()->create([
-            
             'address' => $request->address,
+            'contact_no' => $request->contact_no,
             'gender' => $request->gender,
             'join_date' => $request->join_date,
             'date_of_birth' => $request->date_of_birth,
