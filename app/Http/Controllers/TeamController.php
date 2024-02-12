@@ -57,19 +57,19 @@ class TeamController extends Controller
         //     return response()->json(['message' => 'User does not belong to any team'], 404);
         // }
         //$teams = Team::find($teamId);
-        $teams = Team::with('user.role')->findorFail($id)->get();
-
+        $teams = Team::with(['user.role', 'user.userMeta'])->find($id);
+        
         if (!$teams) {
             return response()->json(['message' => 'Team not found'], 404);
         }
 
         $hierarchies = [];
 
-        foreach ($teams as $team) {
+        
             $hierarchy = [
-                'team_id' => $team->id,
-                'team_name' => $team->team_name,
-                'description' => $team->description,
+                'team_id' => $teams->id,
+                'team_name' => $teams->team_name,
+                'description' => $teams->description,
                 'project_manager' => [],
                 'frontend_team_lead' => [],
                 'backend_team_lead' => [],
@@ -77,7 +77,7 @@ class TeamController extends Controller
                 'backend_developers' => []
             ];
 
-            foreach ($team->user as $member) {
+            foreach ($teams->user as $member) {
                 if (strtolower($member->role->title) == 'project manager') {
                     $hierarchy['project_manager'] = $member;
                 } elseif (strtolower($member->role->title) == 'frontend teamlead') {
@@ -92,7 +92,7 @@ class TeamController extends Controller
             }
 
             $hierarchies[] = $hierarchy;
-        }
+       
 
         return response()->json(['teams' => $hierarchies]);
     }
@@ -167,7 +167,7 @@ class TeamController extends Controller
 
         return response()->json(['team' => $team]);
 
-        return response()->json($team);
+        //return response()->json($team);
     }
 
 
