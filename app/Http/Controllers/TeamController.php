@@ -24,19 +24,43 @@ class TeamController extends Controller
         return response()->json($team);
     }
 
-
-    public function userTeam()
+    public function userTeamList()
     {
         $user = Auth::user();
 
-        if (!$user) {
-            return response()->json(['message' => 'User not authenticated'], 401);
+        if (!$user) 
+        {
+                return response()->json(['message' => 'User not authenticated'], 401);
         }
 
-        $teams = $user->teams()->with('user.role')->get();
+        $teams = $user->teams()->get();
 
         if ($teams->isEmpty()) {
             return response()->json(['message' => 'User does not belong to any team'], 404);
+        }
+
+        return response()->json($teams);
+    }
+
+
+    public function userTeam($id)
+    {
+        // $user = Auth::user();
+
+        // if (!$user) {
+        //     return response()->json(['message' => 'User not authenticated'], 401);
+        // }
+
+        // $teams = $user->teams()->with('user.role')->get();
+
+        // if ($teams->isEmpty()) {
+        //     return response()->json(['message' => 'User does not belong to any team'], 404);
+        // }
+        //$teams = Team::find($teamId);
+        $teams = Team::with('user.role')->findorFail($id)->get();
+
+        if (!$teams) {
+            return response()->json(['message' => 'Team not found'], 404);
         }
 
         $hierarchies = [];
@@ -54,13 +78,13 @@ class TeamController extends Controller
             ];
 
             foreach ($team->user as $member) {
-                if ($member->role->title == 'project manager') {
+                if (strtolower($member->role->title) == 'project manager') {
                     $hierarchy['project_manager'] = $member;
-                } elseif ($member->role->title == 'frontend teamlead') {
+                } elseif (strtolower($member->role->title) == 'frontend teamlead') {
                     $hierarchy['frontend_team_lead'] = $member;
-                } elseif ($member->role->title == 'backend teamlead') {
+                } elseif (strtolower($member->role->title) == 'backend teamlead') {
                     $hierarchy['backend_team_lead'] = $member;
-                } elseif (strpos($member->role->title, 'frontend') !== false) {
+                } elseif (strpos(strtolower($member->role->title), 'frontend') !== false) {
                     $hierarchy['frontend_developers'][] = $member;
                 } else {
                     $hierarchy['backend_developers'][] = $member;
