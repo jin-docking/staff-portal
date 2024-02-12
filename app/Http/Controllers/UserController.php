@@ -19,7 +19,7 @@ class UserController extends Controller
     public function index()
     {
        
-        $user = User::with('userMeta')->get();
+        $user = User::with(['userMeta', 'role'])->get();
 
         return response()->json($user);
 
@@ -120,7 +120,7 @@ class UserController extends Controller
             
                 $user->userMeta()->update([
                     'address' => $request->input('address', $user->userMeta->address),
-
+                    'contact_no' => $request->input('contact_no', $user->userMeta->contact_no),
                     'gender' => $request->input('gender', $user->userMeta->gender),
                     'join_date' => $request->input('join_date', $user->userMeta->join_date),
                     'date_of_birth' => $request->input('date_of_birth', $user->userMeta->date_of_birth),
