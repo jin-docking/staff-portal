@@ -7,6 +7,7 @@ use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserRoleController;
+use App\Http\Controllers\ComputerAssistanceHubController;
 use App\Http\Controllers\Admin\AdminLeaveController;
 /*
 |--------------------------------------------------------------------------
@@ -54,7 +55,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/team/{id}', [TeamController::class, 'show']);
     Route::get('/user-team/{id}', [TeamController::class, 'userTeam']);
     Route::get('/userteamlist', [TeamController::class, 'userTeamList']);
+    Route::post('/techassist/create',[ComputerAssistanceHubController::class, 'store']);
+    Route::get('/techassists',[ComputerAssistanceHubController::class, 'index']);
     
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('/techassist/create',[ComputerAssistanceHubController::class, 'store']);
+    Route::get('/techassists',[ComputerAssistanceHubController::class, 'index']);
+    Route::get('/techassist/{id}',[ComputerAssistanceHubController::class, 'show']);
+    Route::put('/techassist/update/{id}',[ComputerAssistanceHubController::class, 'update']);
+    Route::delete('/techassist/{id}',[TeamController::class, 'destroy']);
+
 });
 
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
@@ -67,6 +80,7 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::put('/role/update/{id}', [UserRoleController::class,'update']);
     Route::get('/role/show/{id}', [UserRoleController::class, 'show']);  
     Route::get('/roles', [UserRoleController::class, 'index']);  
+    
     
 });
 
