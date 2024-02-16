@@ -67,6 +67,6 @@ class User extends Authenticatable
 
     public function techAssists()
     {
-        return $this->hasMany(Leave::class);
+        return $this->hasMany(TechAssist::class);
     }
 }
