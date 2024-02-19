@@ -42,7 +42,7 @@ class UserController extends Controller
         $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);
         //$usermeta = $user->userMeta;
 
-        return response()->json([ 'data' => $user ]);
+        return response()->json($user);
     }
 
     /**
@@ -54,7 +54,7 @@ class UserController extends Controller
         $role = $user->role;
         $userMeta = $user->userMeta;
         $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);
-        return response()->json(['user' => $user]);
+        return response()->json($user);
     }
 
 
