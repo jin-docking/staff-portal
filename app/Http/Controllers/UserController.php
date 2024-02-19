@@ -34,13 +34,15 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::with('role:id,title')->findorFail($id);
+        $user = User::with(['userMeta', 'role:id,title'])->findorFail($id);
         if (empty($user)){
             return response()->json(['message' => 'user not found'], 404);
         }
-        
-        $usermeta = $user->userMeta;
-            return response()->json($user);
+
+        $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);
+        //$usermeta = $user->userMeta;
+
+        return response()->json([ 'data' => $user ]);
     }
 
     /**

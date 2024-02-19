@@ -15,6 +15,7 @@ class AuthController extends Controller
     //Method for registering user
     public function register(Request $request)
     {
+        
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -34,50 +35,44 @@ class AuthController extends Controller
             'profile_pic' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
     
-    /*if($request->hasFile('profile_pic')) {
-        $imagePath = $request->file('profile_pic')->store('profile_images', 'public');
-    }*/
+        if($request->hasFile('profile_pic')) {
+            $imagePath = $request->file('profile_pic')->store('profile_images', 'public');
+        }
 
-    if ($request->hasFile('profile_pic') && $request->file('profile_pic')->isValid()) {
-        $image = $request->file('profile_pic');
-        $imageName = time() . '.' . $image->extension();
-        $image->move(public_path('images'), $imageName);
-    } else {
-        return response()->json(['error' => 'Invalid or missing profile picture'], 422);
-    }
+    
 
-    $user = new User([
-        'first_name' => $request->first_name,
-        'last_name' => $request->last_name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        //'role_id' => $request->role_id,
-     ]);
+        $user = new User([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            //'role_id' => $request->role_id,
+        ]);
 
-     $role = Role::find($request->input('role_id'));
+        $role = Role::find($request->input('role_id'));
 
-     if (!$role) {
-        return response()->json(['error' => 'Role not found'], 404);
-    }
+        if (!$role) {
+            return response()->json(['error' => 'Role not found'], 404);
+        }
 
-    $user->role()->associate($role);
-    $user->save();
-    $user->userMeta()->create([
-            'address' => $request->address,
-            'contact_no' => $request->contact_no,
-            'gender' => $request->gender,
-            'join_date' => $request->join_date,
-            'date_of_birth' => $request->date_of_birth,
-            'father' => $request->father,
-            'mother' => $request->mother,
-            'spouse' => $request->spouse,
-            'children' => $request->children,
-            'pincode' => $request->pincode,
-            'aadhar' => $request->aadhar,
-            'pan' => $request->pan,
-            'profile_pic' => $imageName,
+        $user->role()->associate($role);
+        $user->save();
+        $user->userMeta()->create([
+                'address' => $request->address,
+                'contact_no' => $request->contact_no,
+                'gender' => $request->gender,
+                'join_date' => $request->join_date,
+                'date_of_birth' => $request->date_of_birth,
+                'father' => $request->father,
+                'mother' => $request->mother,
+                'spouse' => $request->spouse,
+                'children' => $request->children,
+                'pincode' => $request->pincode,
+                'aadhar' => $request->aadhar,
+                'pan' => $request->pan,
+                'profile_pic' => $imagePath,
 
-    ]);
+        ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -107,6 +102,7 @@ class AuthController extends Controller
             
     }
     // method for user logout and delete token
+
     public function logout()
     {
         auth()->user()->tokens()->delete();
