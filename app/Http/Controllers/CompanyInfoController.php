@@ -59,9 +59,33 @@ class CompanyInfoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        
+        $info = CompanyInfo::findOrFail($id);
+
+        if (!$info) {
+            return response()->json(['message' => 'The info does not exists']);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required',
+            'logo' => 'required|string',
+            'email' => 'required|string|email',
+            'address' => 'required|string',
+            'contact_no' => 'required'
+        ]);
+
+        $info->update([
+            'title' => $request->input('title', $info->title),
+            'description' => $request->input('description', $info->description),
+            'logo' => $request->input('logo', $info->logo),
+            'email' => $request->input('email', $info->email),
+            'address' => $request->input('address', $info->address),
+            'contact_no' => $request->input('contact_no', $info->contact_no),
+         ]);     
+        return response()->json(['message' => 'Leave updated successfully', 'data' => $info]);
     }
 
     /**

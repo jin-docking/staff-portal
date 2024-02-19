@@ -112,7 +112,8 @@ Route::middleware(['auth:sanctum','role:Admin'])->group(function () {
 Route::post('/role/create', [UserRoleController::class, 'store']);
 Route::post('/companyinfo/create', [CompanyInfoController::class, 'store']);
 //Route::put('/role/update/{id}', [UserRoleController::class,'update']);
-//Route::get('/role/show/{id}', [UserRoleController::class, 'show']);   
+Route::get('/comapnyinfo/show/{id}', [CompanyInfoController::class, 'show']);   
+Route::post('/companyinfo/update/{id}', [CompanyInfoController::class, 'update']);
 
 
 
