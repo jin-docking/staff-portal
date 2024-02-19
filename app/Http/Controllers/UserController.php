@@ -53,6 +53,7 @@ class UserController extends Controller
         $user = Auth::user();
         $role = $user->role;
         $userMeta = $user->userMeta;
+        $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);
         return response()->json(['user' => $user]);
     }
 

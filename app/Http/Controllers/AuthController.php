@@ -37,6 +37,11 @@ class AuthController extends Controller
     
         if($request->hasFile('profile_pic')) {
             $imagePath = $request->file('profile_pic')->store('profile_images', 'public');
+
+            if (!Storage::disk('public')->exists($imagePath)) {
+            
+                return response()->json(['error' => 'The image could not be moved to storage.'], 500);
+            }
         }
 
     
