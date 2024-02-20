@@ -35,16 +35,22 @@ class AuthController extends Controller
             'pan' => 'required|string|max:255',
             'profile_pic' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
-    
-        if($request->hasFile('profile_pic')) {
-            $imagePath = $request->file('profile_pic')->store('profile_images', 'public');
 
-            if (!Storage::disk('public')->exists($imagePath)) {
+
+        if($request->hasFile('profile_pic')) {
             
-                return response()->json(['error' => 'The image could not be moved to storage.'], 500);
-            }
+            $file = $request->file('profile_pic');
+
+            if ($file->isValid()) {
+                
+                $imagePath = $file->store('profile_images', 'public');
+
+            } else {
+                
+                $error = $file->getError();     
         }
 
+    }
     
 
         $user = new User([
@@ -62,7 +68,10 @@ class AuthController extends Controller
         }
 
         $user->role()->associate($role);
+
         $user->save();
+
+        
         $user->userMeta()->create([
                 'address' => $request->address,
                 'contact_no' => $request->contact_no,
