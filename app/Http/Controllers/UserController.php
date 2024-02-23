@@ -114,11 +114,11 @@ class UserController extends Controller
                 $user->save();
             
                 if ($request->hasFile('profile_pic') && $request->file('profile_pic')->isValid()) {
-                    $image = $request->file('profile_pic');
-                    $imageName = time() . '.' . $image->extension();
-                    $image->move(public_path('images'), $imageName);
+
+                    $imagePath = $request->file('profile_pic')->store('profile_pic', 'public');
+
                 } else {
-                    $imageName = $user->userMeta->profile_pic;
+                    $imagePath = $user->userMeta->profile_pic;
                 }
             
                 $user->userMeta()->update([
@@ -134,7 +134,7 @@ class UserController extends Controller
                     'pincode' => $request->input('pincode', $user->userMeta->pincode),
                     'aadhar' => $request->input('aadhar', $user->userMeta->aadhar),
                     'pan' => $request->input('pan', $user->userMeta->pan),
-                    'profile_pic' => $imageName,
+                    'profile_pic' => $imagePath,
                 ]);
             return response()->json(['message' => 'user updated'], 200);
 

@@ -41,6 +41,7 @@ class ComputerAssistanceHubController extends Controller
                 'creator_name' => $user->first_name ." ". $user->last_name,
             ],
         ], 200);
+        
     }
 
     public function update(Request $request, $id)
@@ -60,6 +61,7 @@ class ComputerAssistanceHubController extends Controller
          $request->validate([
             'title' => 'required|string',
             'description' => 'Required|string',
+            'invoice' => 'nullable|pdf|mimes:pdf|max:'
          ]);     
          
         

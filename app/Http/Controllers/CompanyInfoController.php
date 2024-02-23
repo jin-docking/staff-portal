@@ -28,16 +28,33 @@ class CompanyInfoController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required',
-            'logo' => 'required|string',
+            'logo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'email' => 'required|string|email',
             'address' => 'required|string',
             'contact_no' => 'required'
         ]);
 
+        if($request->hasFile('logo')) {
+            
+            $file = $request->file('logo');
+
+            if ($file->isValid()) {
+                
+                $logoPath = $file->store('logo', 'public');
+
+            } else {
+                
+                $error = $file->getError();     
+                
+                return response()->json($error);
+            }
+
+        }
+
         $info = CompanyInfo::create([
             'title' => $request->title,
             'description' => $request->description,
-            'logo' => $request->logo,
+            'logo' => $logoPath,
             'email' => $request->email,
             'address' => $request->address,
             'contact_no' => $request->contact_no,
@@ -70,17 +87,25 @@ class CompanyInfoController extends Controller
 
         $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'required',
-            'logo' => 'required|string',
+            'description' => 'required|string',
+            'logo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'email' => 'required|string|email',
             'address' => 'required|string',
             'contact_no' => 'required'
         ]);
 
+        if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
+
+            $logoPath = $request->file('logo')->store('logo', 'public');
+
+        } else {
+            $logoPath = $info->logo;
+        }
+
         $info->update([
             'title' => $request->input('title', $info->title),
             'description' => $request->input('description', $info->description),
-            'logo' => $request->input('logo', $info->logo),
+            'logo' => $logoPath,
             'email' => $request->input('email', $info->email),
             'address' => $request->input('address', $info->address),
             'contact_no' => $request->input('contact_no', $info->contact_no),

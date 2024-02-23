@@ -43,14 +43,16 @@ class AuthController extends Controller
 
             if ($file->isValid()) {
                 
-                $imagePath = $file->store('profile_images', 'public');
+                $imagePath = $file->store('profile_pic', 'public');
 
             } else {
                 
                 $error = $file->getError();     
-        }
+                
+                return response()->json($error);
+            }
 
-    }
+        }
     
 
         $user = new User([

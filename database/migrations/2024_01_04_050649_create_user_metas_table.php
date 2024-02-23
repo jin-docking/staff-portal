@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->string('address');
-            $table->integer('contact_no');
+            $table->bigInteger('contact_no');
             $table->string('gender');
             $table->dateTime('join_date');
             $table->dateTime('date_of_birth');
