@@ -105,7 +105,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 //leave approve 
-Route::middleware(['auth:sanctum','role:Admin'])->group(function () {
+Route::middleware(['auth:sanctum','role:Admin,HR'])->group(function () {
 
     Route::get('/leave/view', [AdminLeaveController::class, 'index']);
     Route::get('/leave/view/{id}', [AdminLeaveController::class, 'show']);  
