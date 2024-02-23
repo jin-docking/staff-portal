@@ -44,6 +44,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // API route for logout user
     Route::post('/logout', [AuthController::class, 'logout']);
 });
+
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     
     Route::get('user',[UserController::class, 'index']);
@@ -56,9 +57,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/team/{id}', [TeamController::class, 'show']);
     Route::get('/user-team/{id}', [TeamController::class, 'userTeam']);
     Route::get('/userteamlist', [TeamController::class, 'userTeamList']);
-    Route::post('/techassist/create',[ComputerAssistanceHubController::class, 'store']);
-    Route::get('/techassists',[ComputerAssistanceHubController::class, 'index']);
-    
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -67,7 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/techassists',[ComputerAssistanceHubController::class, 'index']);
     Route::get('/techassist/{id}',[ComputerAssistanceHubController::class, 'show']);
     Route::put('/techassist/update/{id}',[ComputerAssistanceHubController::class, 'update']);
-    Route::delete('/techassist/{id}',[TeamController::class, 'destroy']);
+    Route::delete('/techassist/{id}',[ComputerAssistanceHubController::class, 'destroy']);
 
 });
 
@@ -107,14 +105,14 @@ Route::middleware(['auth:sanctum','role:Admin'])->group(function () {
    
 });
 
+Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
+       
+    Route::post('/companyinfo/create', [CompanyInfoController::class, 'store']);
+    Route::get('/comapnyinfo/show/{id}', [CompanyInfoController::class, 'show']);   
+    Route::post('/companyinfo/update/{id}', [CompanyInfoController::class, 'update']);
+    Route::delete('/companyinfo/delete/{id}', [CompanyInfoController::class,'destroy']);
+});
 
-//Route::get('/roles', [UserRoleController::class, 'index']);    
 Route::post('/role/create', [UserRoleController::class, 'store']);
-Route::post('/companyinfo/create', [CompanyInfoController::class, 'store']);
-//Route::put('/role/update/{id}', [UserRoleController::class,'update']);
-Route::get('/comapnyinfo/show/{id}', [CompanyInfoController::class, 'show']);   
-Route::post('/companyinfo/update/{id}', [CompanyInfoController::class, 'update']);
-
-
 
 
