@@ -43,11 +43,9 @@ class AuthController extends Controller
             $file = $request->file('profile_pic');
 
             if ($file->isValid()) {
-                
-                $imagePath = $file->store('profile_pic', 'public');
+                 $imagePath = $file->store('profile_pic', 'public');
 
             } else {
-                
                 $error = $file->getError();     
                 
                 return response()->json($error);
@@ -55,7 +53,6 @@ class AuthController extends Controller
 
         }
     
-
         $user = new User([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
