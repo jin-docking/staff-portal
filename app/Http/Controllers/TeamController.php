@@ -8,7 +8,7 @@ use App\Models\Team;
 use App\Models\User;
 use App\Models\Role;
 use Validator;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 
 class TeamController extends Controller
@@ -28,12 +28,11 @@ class TeamController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) 
-        {
+        if (!$user) {
                 return response()->json(['message' => 'User not authenticated'], 401);
         }
 
-        $teams = $user->teams()->get();
+        $teams = $user->teams->get();
 
         if ($teams->isEmpty()) {
             return response()->json(['message' => 'User does not belong to any team'], 404);
@@ -45,18 +44,7 @@ class TeamController extends Controller
 
     public function userTeam($id)
     {
-        // $user = Auth::user();
-
-        // if (!$user) {
-        //     return response()->json(['message' => 'User not authenticated'], 401);
-        // }
-
-        // $teams = $user->teams()->with('user.role')->get();
-
-        // if ($teams->isEmpty()) {
-        //     return response()->json(['message' => 'User does not belong to any team'], 404);
-        // }
-        //$teams = Team::find($teamId);
+        
         $teams = Team::with(['user.role', 'user.userMeta'])->find($id);
         
         if (!$teams) {
