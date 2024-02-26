@@ -30,7 +30,7 @@ class AuthController extends Controller
             'date_of_birth' => 'required',
             'father' => 'required|string|max:255',
             'mother' => 'required|string|max:255',
-            'marital_status' => 'required|in:yes,no',
+            'marital_status' => 'required',
             'pincode' => 'required|integer',
             'aadhar' => 'required|string|max:255',
             'pan' => 'required|string|max:255',
@@ -98,6 +98,7 @@ class AuthController extends Controller
         return response()->json(['data' => $user,'access_token' => $token, 'token_type' => 'Bearer', ]);
             
     }
+
     //method for user login
     public function login(Request $request)
     {
