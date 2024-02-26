@@ -30,7 +30,7 @@ class AuthController extends Controller
             'date_of_birth' => 'required',
             'father' => 'required|string|max:255',
             'mother' => 'required|string|max:255',
-            'marital_status' => 'required|in:yes,no',
+            'marital_status' => 'required',
             'pincode' => 'required|integer',
             'aadhar' => 'required|string|max:255',
             'pan' => 'required|string|max:255',
@@ -43,11 +43,9 @@ class AuthController extends Controller
             $file = $request->file('profile_pic');
 
             if ($file->isValid()) {
-                
-                $imagePath = $file->store('profile_pic', 'public');
+                 $imagePath = $file->store('profile_pic', 'public');
 
             } else {
-                
                 $error = $file->getError();     
                 
                 return response()->json($error);
@@ -55,7 +53,6 @@ class AuthController extends Controller
 
         }
     
-
         $user = new User([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
@@ -98,6 +95,7 @@ class AuthController extends Controller
         return response()->json(['data' => $user,'access_token' => $token, 'token_type' => 'Bearer', ]);
             
     }
+
     //method for user login
     public function login(Request $request)
     {
