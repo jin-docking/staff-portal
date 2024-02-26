@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validate;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\Role;
 
@@ -29,7 +30,6 @@ class AuthController extends Controller
             'date_of_birth' => 'required',
             'father' => 'required|string|max:255',
             'mother' => 'required|string|max:255',
-            'marital_status' => 'required|in:yes,no',
             'pincode' => 'required|integer',
             'aadhar' => 'required|string|max:255',
             'pan' => 'required|string|max:255',
@@ -82,7 +82,6 @@ class AuthController extends Controller
                 'date_of_birth' => $request->date_of_birth,
                 'father' => $request->father,
                 'mother' => $request->mother,
-                'marital_status' => $request->marital_status,
                 'spouse' => $request->spouse,
                 'children' => $request->children,
                 'pincode' => $request->pincode,
