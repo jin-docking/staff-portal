@@ -16,6 +16,11 @@ class CompanyInfoController extends Controller
     {
         $info = CompanyInfo::all();
 
+        if($info->empty()){
+            return response()->json(['message' => 'nothing to show'], 404);
+
+        }
+
         return response()->json($info);
     }
 
@@ -68,7 +73,14 @@ class CompanyInfoController extends Controller
      */
     public function show($id)
     {
+        if (!CompanyInfo::where('id', $id)->exists()){
+            return response()->json(['message' => 'Company info does not exists'], 404);
+        
+        }
+
         $info = CompanyInfo::findOrFail($id);
+
+        $info->logo = asset('storage/' . $info->logo);
 
         return response()->json(['data' => $info]);
     }
@@ -120,6 +132,12 @@ class CompanyInfoController extends Controller
     {
         
         $info = CompanyInfo::findOrFail($id);
+
+        if (!$info)
+        {
+            return response()->json(['message' => 'request does not exists'], 404);
+
+        }
 
         $info->delete();
 

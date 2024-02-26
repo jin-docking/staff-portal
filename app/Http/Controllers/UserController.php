@@ -129,6 +129,7 @@ class UserController extends Controller
                     'date_of_birth' => $request->input('date_of_birth', $user->userMeta->date_of_birth),
                     'father' => $request->input('father', $user->userMeta->father),
                     'mother' => $request->input('mother', $user->userMeta->mother),
+                    'marital_status' => $request->input('marital_status', $user->userMeta->marital_status),
                     'spouse' => $request->input('spouse', $user->userMeta->spouse),
                     'children' => $request->input('children', $user->userMeta->children),
                     'pincode' => $request->input('pincode', $user->userMeta->pincode),
