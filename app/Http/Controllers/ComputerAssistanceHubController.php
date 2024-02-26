@@ -50,6 +50,7 @@ class ComputerAssistanceHubController extends Controller
 
          if (!$hub) {
              return response()->json(['error' => 'Request not found'], 404);
+
          }
 
          $user = Auth::user();
@@ -63,12 +64,20 @@ class ComputerAssistanceHubController extends Controller
             'description' => 'Required|string',
             'invoice' => 'nullable|pdf|mimes:pdf|max:'
          ]);     
-         
+
+         if($request->hasFile('invoice')){
+            $invoicePath = $request->file('invoice')->store('invoices', 'public');
+        
+        } else {
+            $invoicePath = $hub->invoice;
+            
+        }
         
          $hub->update([
             'title' => $request->input('title', $hub->title),
             'description' => $request->input('description', $hub->description),
-            'status' => 'pending',
+            'status' => $request->input('status', $hub->status),
+            'invoice' => $invoicePath,  
          ]);     
 
         return response()->json(['message' => 'Request updated successfully', 'data' => $hub], 204);
