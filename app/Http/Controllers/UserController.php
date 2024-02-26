@@ -51,14 +51,29 @@ class UserController extends Controller
     public function userProfile()
     {   
         $user = Auth::user();
-
         $role = $user->role;
-
         $userMeta = $user->userMeta;
-
         $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);
-
         return response()->json($user);
+    }
+
+
+    public function getProfilePic($userId)
+    {
+        $user = User::findOrFail($userId);
+
+        
+        $imageName = $user->userMeta->profile_pic;
+
+        $imagePath = public_path('images/') . $imageName;
+
+        
+        if (!file_exists($imagePath)) {
+            return response()->json(['error' => 'Image not found'], 404);
+        }
+
+        
+        return response()->file($imagePath);
     }
 
 
@@ -68,6 +83,7 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         
+       
         $user = Auth::user();
          
         if (!$user) {
@@ -113,7 +129,6 @@ class UserController extends Controller
                     'date_of_birth' => $request->input('date_of_birth', $user->userMeta->date_of_birth),
                     'father' => $request->input('father', $user->userMeta->father),
                     'mother' => $request->input('mother', $user->userMeta->mother),
-                    'marital_status' => $request->input('marital_status', $user->userMeta->marital_status),
                     'spouse' => $request->input('spouse', $user->userMeta->spouse),
                     'children' => $request->input('children', $user->userMeta->children),
                     'pincode' => $request->input('pincode', $user->userMeta->pincode),
@@ -142,11 +157,12 @@ class UserController extends Controller
     public function destroy($id)
     {
         if (User::where('id', $id)->exists()) {
-            User::findOrFail($id)->delete();
 
+            User::findOrFail($id)->delete();
             return response()->json(['message' => 'user deleted'], 202);
 
         } else {
+
             return response()->json(['message' => 'user not found'], 404);
         }
         

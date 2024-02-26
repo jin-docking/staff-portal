@@ -24,7 +24,7 @@ use App\Http\Controllers\Admin\AdminLeaveController;
 Route::post("/register",[AuthController::class, 'register']);
 Route::post("/login",[AuthController::class, 'login']);
 
-Route::post('/role/create', [UserRoleController::class, 'store']);
+
 /*Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 
@@ -34,19 +34,17 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/user', function(Request $request) {
         return auth()->user();
     });
-
-    //api route for user control
+    //api route for staff management
     
     
     Route::get('user/{id}',[UserController::class, 'show']);
     Route::get('/userprofile',[UserController::class, 'userProfile']);
     Route::put('/update/{id}', [UserController::class, 'update']);
-    //Route::get('/user/{userId}/profile-pic',[UserController::class, 'getProfilePic']);
+    Route::get('/user/{userId}/profile-pic',[UserController::class, 'getProfilePic']);
     // API route for logout user
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
-//admin to manage staff
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     
     Route::get('user',[UserController::class, 'index']);
@@ -54,15 +52,13 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     
 });
 
-//user's team list
 Route::middleware('auth:sanctum')->group(function () {
-    
+  
     Route::get('/team/{id}', [TeamController::class, 'show']);
     Route::get('/user-team/{id}', [TeamController::class, 'userTeam']);
     Route::get('/userteamlist', [TeamController::class, 'userTeamList']);
 });
 
-//request for technical assistance
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/techassist/create',[ComputerAssistanceHubController::class, 'store']);
@@ -73,7 +69,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-//creating and managing team
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     
     Route::post('/team/create',[TeamController::class, 'store']);
@@ -81,18 +76,14 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::put('/team/update/{id}', [TeamController::class, 'update']);
     Route::get('/team', [TeamController::class, 'index']);
     Route::get('/allroles/{roles}', [TeamController::class, 'getUsersByRole']);
-
-});
-
-//creating and managing roles
-Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::put('/role/update/{id}', [UserRoleController::class,'update']);
     Route::get('/role/show/{id}', [UserRoleController::class, 'show']);  
     Route::get('/roles', [UserRoleController::class, 'index']);  
-
+    
+    
 });
 
-//leave application
+
 Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::post('/leave', [LeaveController::class, 'store']);
@@ -104,8 +95,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 });
 
-//leave approve 
-Route::middleware(['auth:sanctum','role:Admin,HR'])->group(function () {
+Route::middleware(['auth:sanctum','role:Admin'])->group(function () {
 
     Route::get('/leave/view', [AdminLeaveController::class, 'index']);
     Route::get('/leave/view/{id}', [AdminLeaveController::class, 'show']);  
@@ -115,16 +105,14 @@ Route::middleware(['auth:sanctum','role:Admin,HR'])->group(function () {
    
 });
 
-//managing company info
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
-    
-    Route::get('companyinfo/', [CompanyInfoController::class, 'index']);
+       
     Route::post('/companyinfo/create', [CompanyInfoController::class, 'store']);
-    Route::get('/companyinfo/show/{id}', [CompanyInfoController::class, 'show']);   
-    Route::put('/companyinfo/update/{id}', [CompanyInfoController::class, 'update']);
+    Route::get('/comapnyinfo/show/{id}', [CompanyInfoController::class, 'show']);   
+    Route::post('/companyinfo/update/{id}', [CompanyInfoController::class, 'update']);
     Route::delete('/companyinfo/delete/{id}', [CompanyInfoController::class,'destroy']);
 });
 
-
+Route::post('/role/create', [UserRoleController::class, 'store']);
 
 

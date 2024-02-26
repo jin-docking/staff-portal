@@ -21,7 +21,6 @@ return new class extends Migration
             $table->dateTime('date_of_birth');
             $table->string('father');
             $table->string('mother');
-            $table->string('marital_status');
             $table->string('spouse')->nullable();
             $table->string('children')->nullable();
             $table->integer('pincode');
