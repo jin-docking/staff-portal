@@ -90,12 +90,12 @@ class CompanyInfoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
-        $info = CompanyInfo::findOrFail($id);
+        if (!CompanyInfo::where('id', $id)->exists()){
+            return response()->json(['message' => 'information does not exists'], 404);
 
-        if (!$info) {
-            return response()->json(['message' => 'The info does not exists']);
-        }
+        }        
+
+        $info = CompanyInfo::findOrFail($id);
 
         $request->validate([
             'title' => 'required|string|max:255',
@@ -121,8 +121,9 @@ class CompanyInfoController extends Controller
             'email' => $request->input('email', $info->email),
             'address' => $request->input('address', $info->address),
             'contact_no' => $request->input('contact_no', $info->contact_no),
-         ]);     
-        return response()->json(['message' => 'Leave updated successfully', 'data' => $info]);
+        ]);   
+
+        return response()->json(['message' => 'information updated successfully', 'data' => $info]);
     }
 
     /**
@@ -130,14 +131,12 @@ class CompanyInfoController extends Controller
      */
     public function destroy($id)
     {
-        
-        $info = CompanyInfo::findOrFail($id);
-
-        if (!$info)
-        {
-            return response()->json(['message' => 'request does not exists'], 404);
+        if (!CompanyInfo::where('id', $id)->exists()){
+            return response()->json(['message' => 'information does not exists'], 404);
 
         }
+        
+        $info = CompanyInfo::findOrFail($id);
 
         $info->delete();
 

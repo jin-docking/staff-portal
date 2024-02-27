@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserRoleController;
@@ -41,6 +42,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('user/{id}',[UserController::class, 'show']);
     Route::get('/userprofile',[UserController::class, 'userProfile']);
     Route::put('/update/{id}', [UserController::class, 'update']);
+
+    Route::get('holidays', [HolidayController::class, 'index']);
     //Route::get('/user/{userId}/profile-pic',[UserController::class, 'getProfilePic']);
     // API route for logout user
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -125,6 +128,10 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::delete('/companyinfo/delete/{id}', [CompanyInfoController::class,'destroy']);
 });
 
+Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
 
-
-
+    Route::post('holiday/create', [HolidayController::class, 'store']);
+    Route::put('holiday/update/{id}', [HolidayController::class, 'update']);
+    Route::get('holiday/show/{id}', [HolidayController::class, 'show']);
+    Route::delete('holiday/{id}', [HolidayController::class, 'destroy']);
+});
