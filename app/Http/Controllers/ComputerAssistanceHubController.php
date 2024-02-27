@@ -46,26 +46,27 @@ class ComputerAssistanceHubController extends Controller
 
     public function update(Request $request, $id)
      {        
-         $hub = TechAssist::findorFail($id);
+        
+        if (!TechAssist::where('id', $id)->exists()){
+            return response()->json(['message' => 'request does not exists'], 404);
 
-         if (!$hub) {
-             return response()->json(['error' => 'Request not found'], 404);
+        }
+        
+        $hub = TechAssist::findorFail($id);
 
-         }
+        $user = Auth::user();
 
-         $user = Auth::user();
-
-         if ($user->id != $hub->user_id) {
+        if ($user->id != $hub->user_id) {
              return response()->json(['error' => 'You do not have permission to update this request.'], 403);
-         }             
+        }             
          
-         $request->validate([
+        $request->validate([
             'title' => 'required|string',
             'description' => 'Required|string',
             'invoice' => 'nullable|pdf|mimes:pdf|max:'
-         ]);     
+        ]);     
 
-         if($request->hasFile('invoice')){
+        if($request->hasFile('invoice')){
             $invoicePath = $request->file('invoice')->store('invoices', 'public');
         
         } else {
@@ -73,12 +74,12 @@ class ComputerAssistanceHubController extends Controller
             
         }
         
-         $hub->update([
+        $hub->update([
             'title' => $request->input('title', $hub->title),
             'description' => $request->input('description', $hub->description),
             'status' => $request->input('status', $hub->status),
             'invoice' => $invoicePath,  
-         ]);     
+        ]);     
 
         return response()->json(['message' => 'Request updated successfully', 'data' => $hub], 204);
     } 
@@ -86,6 +87,11 @@ class ComputerAssistanceHubController extends Controller
 
     public function show($id)
     {
+        if (!TechAssist::where('id', $id)->exists()){
+            return response()->json(['message' => 'request does not exists'], 404);
+
+        }
+
         $hub = TechAssist::findorFail($id);
 
         return response()->json(['data' => $hub,
@@ -97,14 +103,13 @@ class ComputerAssistanceHubController extends Controller
 
     public function destroy($id)
     {
-        $hub = TechAssist::findorFail($id);
-
-        if (!$hub)
-        {
-
+    
+        if (!TechAssist::where('id', $id)->exists()){
             return response()->json(['message' => 'request does not exists'], 404);
 
         }
+
+        $hub = TechAssist::findorFail($id);
 
         $hub->delete();
 
