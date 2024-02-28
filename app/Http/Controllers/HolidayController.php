@@ -13,9 +13,9 @@ class HolidayController extends Controller
      */
     public function index()
     {
-        if (Holiday::get()->empty()){
+        /*if (Holiday::all()->empty()){
             return response()->json(['message' => 'Holiday does not exists'], 404);
-        }
+        }*/
 
         $holiday = Holiday::all();
 
