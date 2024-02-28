@@ -127,7 +127,7 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::put('/companyinfo/update/{id}', [CompanyInfoController::class, 'update']);
     Route::delete('/companyinfo/delete/{id}', [CompanyInfoController::class,'destroy']);
 });
-
+//managing company holiday
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
 
     Route::post('holiday/create', [HolidayController::class, 'store']);
