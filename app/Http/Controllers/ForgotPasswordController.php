@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Password;
 use Illuminate\Http\Request;
-use Illuminate\Contracts\Auth\PasswordBroker;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class ForgotPasswordController extends Controller
 {
@@ -13,42 +16,40 @@ class ForgotPasswordController extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
-        $response = $this->broker()->sendResetLink(
+
+        $status = Password::sendResetLink(
             $request->only('email')
         );
 
-        return $response == Password::RESET_LINK_SENT
-                    ? response()->json(['message' => 'Reset link sent to your email address.'], 200)
-                    : response()->json(['error' => 'Unable to send reset link'], 400);
+        return $status === Password::RESET_LINK_SENT
+                    ? response()->json(['message' => __($status)])
+                    : response()->json(['message' => __($status)], 400);
     }
-
-
-    public function broker()
-    {
-        return Password::broker();
-    
-    }
-
 
     public function reset(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required|confirmed|min:8',
             'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $response = $this->broker()->reset(
+        $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
-                $user->password = bcrypt($password);
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->setRememberToken(Str::random(60));
+ 
                 $user->save();
+
+                event(new PasswordReset($user));
             }
         );
 
-        return $response == Password::PASSWORD_RESET
-                    ? response()->json(['message' => 'Password reset successfully'], 200)
-                    : response()->json(['error' => 'Unable to reset password'], 400);
+        return $status === Password::PASSWORD_RESET
+                    ? response()->json(['message' => __($status)])
+                    : response()->json(['message' => __($status)], 400);
     }
     
 }

@@ -21,7 +21,7 @@ class UserRoleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string',
+            'title' => 'required|string|unique:roles',
             'description' => 'required|string',
             'leaves' => 'required|integer',
         ]);
@@ -59,5 +59,15 @@ class UserRoleController extends Controller
     {
         $role = Role::findorFail($id);
         return response()->json($role);
+    }
+
+    public function destroy($id)
+    {
+
+        $role = Role::findOrFail($id);
+        
+        $role->delete();
+
+        return response()->json(['message' => 'Role has been deleted']);
     }
 }

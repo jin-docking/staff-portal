@@ -31,7 +31,7 @@ Route::post("/login",[AuthController::class, 'login']);
 
 Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::post('password/reset', [ForgotPasswordController::class, 'reset'])->name('password.reset');
-
+Route::get('holidays', [HolidayController::class, 'index']);
 Route::post('/role/create', [UserRoleController::class, 'store']);
 /*Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -50,7 +50,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/userprofile',[UserController::class, 'userProfile']);
     Route::match(['post', 'put'], '/update/{id}', [UserController::class, 'update']);
 
-    Route::get('holidays', [HolidayController::class, 'index']);
+    
     //Route::get('/user/{userId}/profile-pic',[UserController::class, 'getProfilePic']);
     // API route for logout user
     Route::post('/logout', [AuthController::class, 'logout']);
