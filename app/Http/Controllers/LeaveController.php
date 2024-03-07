@@ -185,6 +185,11 @@ class LeaveController extends Controller
         if ($user->id != $leave->user_id) {
             return response()->json(['error' => 'You do not have permission to delete this leave.'], 403);
         }    
+
+        if ($leave->approval_status == 'approved'){
+            return response()->json(['error' => 'You do not have permission to delete this leave.'], 403);
+        }
+        
          //  delete the leave
         $leave->delete();
     

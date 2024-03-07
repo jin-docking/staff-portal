@@ -26,6 +26,7 @@ class ForgotPasswordController extends Controller
                     : response()->json(['message' => __($status)], 400);
     }
 
+    
     public function reset(Request $request)
     {
         $request->validate([
