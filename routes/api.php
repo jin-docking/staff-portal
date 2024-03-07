@@ -11,6 +11,7 @@ use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\ComputerAssistanceHubController;
 use App\Http\Controllers\Admin\AdminLeaveController;
+use App\Http\Controllers\ForgotPasswordController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -22,9 +23,15 @@ use App\Http\Controllers\Admin\AdminLeaveController;
 |
 */
 
+
+
 Route::post("/register",[AuthController::class, 'register']);
 Route::post("/login",[AuthController::class, 'login']);
 
+
+Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::post('password/reset', [ForgotPasswordController::class, 'reset'])->name('password.reset');
+Route::get('holidays', [HolidayController::class, 'index']);
 Route::post('/role/create', [UserRoleController::class, 'store']);
 /*Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -41,9 +48,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     
     Route::get('user/{id}',[UserController::class, 'show']);
     Route::get('/userprofile',[UserController::class, 'userProfile']);
-    Route::put('/update/{id}', [UserController::class, 'update']);
+    Route::match(['post', 'put'], '/update/{id}', [UserController::class, 'update']);
 
-    Route::get('holidays', [HolidayController::class, 'index']);
+    
     //Route::get('/user/{userId}/profile-pic',[UserController::class, 'getProfilePic']);
     // API route for logout user
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -71,7 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/techassist/create',[ComputerAssistanceHubController::class, 'store']);
     Route::get('/techassists',[ComputerAssistanceHubController::class, 'index']);
     Route::get('/techassist/{id}',[ComputerAssistanceHubController::class, 'show']);
-    Route::put('/techassist/update/{id}',[ComputerAssistanceHubController::class, 'update']);
+    Route::match(['post', 'put'],'/techassist/update/{id}',[ComputerAssistanceHubController::class, 'update']);
     Route::delete('/techassist/{id}',[ComputerAssistanceHubController::class, 'destroy']);
 
 });

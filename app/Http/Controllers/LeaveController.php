@@ -21,10 +21,9 @@ class LeaveController extends Controller
     {
         $user = Auth::user();
     
-        $leaves = Leave::where('user_id', $user->id)->get();
+        $leaves = Leave::where('user_id', $user->id)->paginate(10);
 
        
-    
         if ($leaves->isNotEmpty()) {
 
             foreach ($leaves as $leave) {

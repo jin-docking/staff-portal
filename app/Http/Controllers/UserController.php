@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\UserMeta;
 use App\Models\Role;
@@ -114,6 +115,8 @@ class UserController extends Controller
                 $user->save();
             
                 if ($request->hasFile('profile_pic') && $request->file('profile_pic')->isValid()) {
+                    
+                    Storage::disk('public')->delete($user->userMeta->profile_pic);
 
                     $imagePath = $request->file('profile_pic')->store('profile_pic', 'public');
 
