@@ -36,6 +36,7 @@ class UserController extends Controller
     public function show($id)
     {
         $user = User::with(['userMeta', 'role:id,title'])->findorFail($id);
+        
         if (empty($user)){
             return response()->json(['message' => 'user not found'], 404);
         }
@@ -52,29 +53,14 @@ class UserController extends Controller
     public function userProfile()
     {   
         $user = Auth::user();
+
         $role = $user->role;
+
         $userMeta = $user->userMeta;
+
         $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);
+
         return response()->json($user);
-    }
-
-
-    public function getProfilePic($userId)
-    {
-        $user = User::findOrFail($userId);
-
-        
-        $imageName = $user->userMeta->profile_pic;
-
-        $imagePath = public_path('images/') . $imageName;
-
-        
-        if (!file_exists($imagePath)) {
-            return response()->json(['error' => 'Image not found'], 404);
-        }
-
-        
-        return response()->file($imagePath);
     }
 
 
