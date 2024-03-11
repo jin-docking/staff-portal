@@ -137,10 +137,18 @@ class UserController extends Controller
             return response()->json(['message' => 'Unauthorized action'], 403);
         }
 
+    }
 
 
-}
+    public function userCount()
+    {
+        $user = User::all();
 
+        $count = $user->count();
+
+        return response()->json(['user_count' => $count], 200);
+
+    }
     /**
      * Remove the specified resource from storage.
      */

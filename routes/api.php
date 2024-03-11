@@ -12,6 +12,8 @@ use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\ComputerAssistanceHubController;
 use App\Http\Controllers\Admin\AdminLeaveController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Models\Leave;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -37,6 +39,7 @@ Route::post('/role/create', [UserRoleController::class, 'store']);
     return $request->user();
 
 });*/
+Route::get('leave/leave-count',[LeaveController::class, 'userLeaveCount']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/user', function(Request $request) {
@@ -45,7 +48,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     //api route for user control
     
-    
+    Route::get('user/user-count',[UserController::class, 'userCount']);
     Route::get('user/{id}',[UserController::class, 'show']);
     Route::get('/userprofile',[UserController::class, 'userProfile']);
     Route::match(['post', 'put'], '/update/{id}', [UserController::class, 'update']);
