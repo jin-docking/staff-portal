@@ -246,6 +246,16 @@ class TeamController extends Controller
     }
 
 
+    public function teamCount()
+    {
+
+        $team = Team::all();
+
+        $team_count = $team->count();
+
+        return response()->json(['message' => $team_count], 200);
+    }
+
     /**
      * Remove the specified resource from storage.
      */

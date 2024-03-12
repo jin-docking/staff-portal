@@ -6,10 +6,9 @@ use App\Models\Leave;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Http\Requests\StoreleaveRequest;
-use App\Http\Requests\UpdateleaveRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 
 class LeaveController extends Controller
@@ -97,16 +96,13 @@ class LeaveController extends Controller
        
         $currentDate = now();
 
-        
         $yearStart = $currentDate->month >= 4 ? $currentDate->startOfYear()->addMonths(3) : $currentDate->subYear()->startOfYear()->addMonths(3);
         $yearEnd = $yearStart->copy()->addYear()->subDay();
-        
         
         $leaveRecords = Leave::where('user_id', $user->id)
         ->where('approval_status', 'approved')
         ->whereBetween('start_date', [$yearStart, $yearEnd])
         ->get();
-
 
         $annualLeave = $user->role->leaves; 
         $takenLeaveCount = $leaveRecords->count();
@@ -172,6 +168,46 @@ class LeaveController extends Controller
             
            return response()->json(['data' => ['user_id' => $user->id,'leave_id' => $leave->id, 'leave_user_id' => $leave->user_id]]);*/
      }   
+
+
+    public function userLeaveCount()
+    {
+        $users = User::all();
+
+        $currentDate = now();
+
+        $yearStart = $currentDate->copy()->startOfYear();
+        if ($currentDate->month >= 4) {
+            $yearStart->addMonths(3);
+        } else {
+            $yearStart->subYear()->addMonths(3);
+        }
+        //$yearStart = $currentDate->month >= 4 ? $currentDate->startOfYear()->addMonths(3) : $currentDate->subYear()->startOfYear()->addMonths(3);
+        $yearEnd = $yearStart->copy()->addYear()->subDay();
+
+        $leaves = Leave::select(DB::raw('user_id, COUNT(id) as total_leaves'))
+        ->whereBetween('start_date', [$yearStart, $yearEnd])
+        ->groupBy('user_id')
+        ->orderBy('total_leaves')
+        ->get();
+        
+        $highestLeaves = $leaves->last(); 
+        $lowestLeaves = $leaves->first();
+
+        $highestUser = User::find($highestLeaves->user_id);
+        $lowestUser = User::find($lowestLeaves->user_id);
+
+        return response()->json([
+            'Highest leave' => [
+                'user' => $highestUser->first_name .' '.$highestUser->last_name,
+                'total_leaves' => $highestLeaves->total_leaves
+            ],
+            'Lowest leave' => [
+                'user' => $lowestUser,
+                'total_leaves' => $lowestLeaves->total_leaves
+            ]
+        ]);
+    }
 
     /**
      * Remove the specified resource from storage.
