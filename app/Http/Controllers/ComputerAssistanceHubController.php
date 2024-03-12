@@ -14,9 +14,26 @@ class ComputerAssistanceHubController extends Controller
 {
     public function index()
     {
-        $hub = TechAssist::all();
+        $hubs = TechAssist::all();
 
-        return response()->json($hub);
+        $data = [];
+        foreach ($hubs as $hub) {
+            $userData = [
+                'name' => $hub->user->first_name .' '. $hub->user->last_name,
+                'email' => $hub->user->email
+            ];
+
+            $data[] = [
+                'hub' => $hub,
+                'user' => $userData
+            ];
+    }
+
+    return response()->json(['data' => $data]);
+        /*return response()->json(['data' => $hub,
+                    'user' => [        
+                    'name' => $hub->user->first_name .' '. $hub->user->last_name,
+                    'email' => $hub->user->email]]);*/
     }
 
     public function store(Request $request)
@@ -26,13 +43,21 @@ class ComputerAssistanceHubController extends Controller
         $request->validate([
             'title' => 'required|string',
             'description' => 'required|string',
-        ]);      
+            'invoice' => 'nullable|pdf,image|mime:pdf,jpeg,png,jpg|max:2048',
+        ]);   
+        
+        if($request->hasFile('invoice')){
+            $invoicePath = $request->file('invoice')->store('invoices', 'public');
+        } else {
+            $invoicePath = 'invoice';
+        }
 
         $hub =TechAssist::create([
             'user_id' => $user->id,                                    
             'title' => $request->title,
-            'status' => 'pending',
+            'status' => $request->input('status', 'pending'),
             'description' => $request->description,
+            'invoice' => $invoicePath,
         ]);
            
         return response()->json(['message' => 'Request for assistance has been successful',    
