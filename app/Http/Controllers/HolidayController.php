@@ -52,6 +52,13 @@ class HolidayController extends Controller
         
     }
 
+    public function upcomingHolidays()
+    {
+        $currrentDate = now();
+        $nextMonth = now()->addMonth();
+
+        return response()->json(['CurrentDate' => $currrentDate, 'nextDate' => $nextMonth], 200);
+    }
     /**
      * Display the specified resource.
      */

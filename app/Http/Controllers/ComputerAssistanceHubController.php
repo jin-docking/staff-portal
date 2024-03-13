@@ -43,7 +43,7 @@ class ComputerAssistanceHubController extends Controller
         $request->validate([
             'title' => 'required|string',
             'description' => 'required|string',
-            'invoice' => 'nullable|pdf,image|mime:pdf,jpeg,png,jpg|max:2048',
+            'invoice' => 'nullable|mime:pdf|max:2048',
         ]);   
         
         if($request->hasFile('invoice')){
@@ -88,7 +88,7 @@ class ComputerAssistanceHubController extends Controller
         $request->validate([
             'title' => 'required|string',
             'description' => 'Required|string',
-            'invoice' => 'nullable|pdf|mimes:pdf|max:'
+            'invoice' => 'nullable|mimes:pdf|max:2048'
         ]);     
 
         if($request->hasFile('invoice')){

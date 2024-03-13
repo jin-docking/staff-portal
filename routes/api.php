@@ -31,6 +31,7 @@ Route::post("/register",[AuthController::class, 'register']);
 Route::post("/login",[AuthController::class, 'login']);
 
 
+Route::get('holidays/upcoming-holidays', [HolidayController::class, 'upcomingHolidays']);
 Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::post('password/reset', [ForgotPasswordController::class, 'reset'])->name('password.reset');
 Route::get('holidays', [HolidayController::class, 'index']);
@@ -71,6 +72,7 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/team', [TeamController::class, 'index']);
+    Route::get('/team/team-count', [TeamController::class, 'teamCount']);
     Route::get('/team/{id}', [TeamController::class, 'show']);
     Route::get('/user-team/{id}', [TeamController::class, 'userTeam']);
     Route::get('/userteamlist', [TeamController::class, 'userTeamList']);

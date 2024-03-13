@@ -203,7 +203,7 @@ class LeaveController extends Controller
                 'total_leaves' => $highestLeaves->total_leaves
             ],
             'Lowest leave' => [
-                'user' => $lowestUser,
+                'user' => $lowestUser->first_name .' '.$lowestUser->last_name,
                 'total_leaves' => $lowestLeaves->total_leaves
             ]
         ]);
