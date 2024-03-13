@@ -31,6 +31,7 @@ Route::post("/register",[AuthController::class, 'register']);
 Route::post("/login",[AuthController::class, 'login']);
 
 
+Route::get('holidays/upcoming-holidays', [HolidayController::class, 'upcomingHolidays']);
 Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::post('password/reset', [ForgotPasswordController::class, 'reset'])->name('password.reset');
 Route::get('holidays', [HolidayController::class, 'index']);
