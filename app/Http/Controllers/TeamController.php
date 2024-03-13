@@ -253,7 +253,7 @@ class TeamController extends Controller
 
         $team_count = $team->count();
 
-        return response()->json(['message' => $team_count], 200);
+        return response()->json(['data' => $team_count], 200);
     }
 
     /**
