@@ -43,7 +43,7 @@ class ComputerAssistanceHubController extends Controller
         $request->validate([
             'title' => 'required|string',
             'description' => 'required|string',
-            'invoice' => 'nullable|mime:pdf|max:2048',
+            'invoice' => 'nullable|mimes:pdf|max:2048',
         ]);   
         
         if($request->hasFile('invoice')){
@@ -88,7 +88,7 @@ class ComputerAssistanceHubController extends Controller
         $request->validate([
             'title' => 'required|string',
             'description' => 'Required|string',
-            'invoice' => 'nullable|mimes:pdf|max:2048'
+            //'invoice' => 'nullable|mimes:pdf|max:2048'
         ]);     
 
         if($request->hasFile('invoice')){
@@ -118,6 +118,8 @@ class ComputerAssistanceHubController extends Controller
         }
 
         $hub = TechAssist::findorFail($id);
+
+        $hub->invoice = asset('storage/' . $hub->invoice);
 
         return response()->json(['data' => $hub,
                     'user' => [        
