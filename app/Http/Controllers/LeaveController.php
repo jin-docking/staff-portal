@@ -198,11 +198,11 @@ class LeaveController extends Controller
         $lowestUser = User::find($lowestLeaves->user_id);
 
         return response()->json([
-            'Highest leave' => [
+            'Highest_leave' => [
                 'user' => $highestUser->first_name .' '.$highestUser->last_name,
                 'total_leaves' => $highestLeaves->total_leaves
             ],
-            'Lowest leave' => [
+            'Lowest_leave' => [
                 'user' => $lowestUser->first_name .' '.$lowestUser->last_name,
                 'total_leaves' => $lowestLeaves->total_leaves
             ]

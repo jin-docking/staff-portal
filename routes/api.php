@@ -31,7 +31,7 @@ Route::post("/register",[AuthController::class, 'register']);
 Route::post("/login",[AuthController::class, 'login']);
 
 
-Route::get('holidays/upcoming-holidays', [HolidayController::class, 'upcomingHolidays']);
+
 Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::post('password/reset', [ForgotPasswordController::class, 'reset'])->name('password.reset');
 Route::get('holidays', [HolidayController::class, 'index']);
@@ -40,7 +40,7 @@ Route::post('/role/create', [UserRoleController::class, 'store']);
     return $request->user();
 
 });*/
-Route::get('leave/leave-count',[LeaveController::class, 'userLeaveCount']);
+
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/user', function(Request $request) {
@@ -111,6 +111,7 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
 //leave application
 Route::group(['middleware' => ['auth:sanctum']], function () {
 
+    Route::get('leave/leave-count',[LeaveController::class, 'userLeaveCount']);
     Route::post('/leave', [LeaveController::class, 'store']);
     Route::put('/leaveupdate/{id}', [LeaveController::class,'update']);
     Route::delete('/leavedelete/{id}', [LeaveController::class,'destroy']);
@@ -146,5 +147,6 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::post('holiday/create', [HolidayController::class, 'store']);
     Route::put('holiday/update/{id}', [HolidayController::class, 'update']);
     Route::get('holiday/show/{id}', [HolidayController::class, 'show']);
+    Route::get('holidays/upcoming-holidays', [HolidayController::class, 'upcomingHolidays']);
     Route::delete('holiday/{id}', [HolidayController::class, 'destroy']);
 });
