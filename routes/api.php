@@ -95,7 +95,6 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::post('/team/create',[TeamController::class, 'store']);
     Route::delete('/team/{id}',[TeamController::class, 'destroy']);
     Route::put('/team/update/{id}', [TeamController::class, 'update']);
-    Route::get('/team', [TeamController::class, 'index']);
     Route::get('/allroles/{roles}', [TeamController::class, 'getUsersByRole']);
 
 });
