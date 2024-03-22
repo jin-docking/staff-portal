@@ -234,5 +234,15 @@ class LeaveController extends Controller
         return response()->json(['message' => 'Leave deleted successfully']);
     }
     
+    public function recentLeaveRequests(){
+        $previousdays = now()->subDays(2);
+
+        $previousLeaves = Leave::where('start_date', '>', $previousdays)
+                                    ->where('status', '=', 'pending')
+                                    ->orderBy('start_date', 'desc')
+                                    ->get();
+
+        return response()->json(['data' => $previousLeaves], 200);
+    }
 }
 
