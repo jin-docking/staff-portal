@@ -200,10 +200,12 @@ class LeaveController extends Controller
         return response()->json([
             'Highest_leave' => [
                 'user' => $highestUser->first_name .' '.$highestUser->last_name,
+                'email' => $highestUser->email,
                 'total_leaves' => $highestLeaves->total_leaves
             ],
             'Lowest_leave' => [
                 'user' => $lowestUser->first_name .' '.$lowestUser->last_name,
+                'email' => $lowestLeaves->email,
                 'total_leaves' => $lowestLeaves->total_leaves
             ]
         ]);
