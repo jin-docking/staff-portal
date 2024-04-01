@@ -57,7 +57,7 @@ class HolidayController extends Controller
         $currrentDate = now();
         $nextMonth = now()->addMonth();
 
-        $upcomingHoliday = Holiday::whereBetween('start_date', [$$currrentDate, $nextMonth]);
+        $upcomingHoliday = Holiday::whereBetween('start_date', [$currrentDate, $nextMonth])->get();
 
         return response()->json(['data' => $upcomingHoliday], 200);
     }

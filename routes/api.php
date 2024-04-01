@@ -86,6 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/techassist/{id}',[ComputerAssistanceHubController::class, 'show']);
     Route::match(['post', 'put'],'/techassist/update/{id}',[ComputerAssistanceHubController::class, 'update']);
     Route::delete('/techassist/{id}',[ComputerAssistanceHubController::class, 'destroy']);
+    Route::get('/techassist/recent-request',[ComputerAssistanceHubController::class, 'recentRequests']);
 
 });
 
@@ -95,7 +96,6 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::post('/team/create',[TeamController::class, 'store']);
     Route::delete('/team/{id}',[TeamController::class, 'destroy']);
     Route::put('/team/update/{id}', [TeamController::class, 'update']);
-    Route::get('/team', [TeamController::class, 'index']);
     Route::get('/allroles/{roles}', [TeamController::class, 'getUsersByRole']);
 
 });
@@ -117,7 +117,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('/leavedelete/{id}', [LeaveController::class,'destroy']);
     Route::get('/leaveview', [LeaveController::class, 'index']);   
     Route::get('/leaveview/{id}', [LeaveController::class, 'show']);  
-    Route::get('/showLeave', [LeaveController::class, 'showLeave']);   
+    Route::get('/showLeave', [LeaveController::class, 'showLeave']); 
+    Route::get('leave/recent-leaves',[LeaveController::class, 'recentLeaveRequests']);  
 
 });
 
