@@ -192,10 +192,11 @@ class LeaveController extends Controller
         ->get();
         
         $highestLeaves = $leaves->last(); 
+        return response()->json($leaves);
         $lowestLeaves = $leaves->first();
 
-        $highestUser = User::find($highestLeaves->user_id);
-        $lowestUser = User::find($lowestLeaves->user_id);
+        $highestUser = User::findOrFail($highestLeaves->user_id);
+        $lowestUser = User::findOrFail($lowestLeaves->user_id);
 
         return response()->json([
             'Highest_leave' => [
@@ -235,12 +236,11 @@ class LeaveController extends Controller
     }
     
     public function recentLeaveRequests(){
-        $previousdays = now()->subDays(2);
+        //$previousdays = now()->subDays(2);
 
-        $previousLeaves = Leave::where('start_date', '>', $previousdays)
-                                    ->where('status', '=', 'pending')
-                                    ->orderBy('start_date', 'desc')
-                                    ->get();
+        $previousLeaves = Leave::where('status', '=', 'pending')
+                                ->orderBy('start_date', 'desc')
+                                ->get();
 
         return response()->json(['data' => $previousLeaves], 200);
     }
