@@ -58,6 +58,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     //Route::get('/user/{userId}/profile-pic',[UserController::class, 'getProfilePic']);
     // API route for logout user
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('holidays/upcoming-holidays', [HolidayController::class, 'upcomingHolidays']);
 });
 
 //admin to manage staff
@@ -148,6 +149,5 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::post('holiday/create', [HolidayController::class, 'store']);
     Route::put('holiday/update/{id}', [HolidayController::class, 'update']);
     Route::get('holiday/show/{id}', [HolidayController::class, 'show']);
-    Route::get('holidays/upcoming-holidays', [HolidayController::class, 'upcomingHolidays']);
     Route::delete('holiday/{id}', [HolidayController::class, 'destroy']);
 });

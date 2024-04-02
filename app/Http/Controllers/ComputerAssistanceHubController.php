@@ -81,9 +81,9 @@ class ComputerAssistanceHubController extends Controller
 
         $user = Auth::user();
 
-        if ($user->id != $hub->user_id) {
+        /*if ($user->id != $hub->user_id) {
              return response()->json(['error' => 'You do not have permission to update this request.'], 403);
-        }             
+        } */            
          
         $request->validate([
             'title' => 'required|string',
@@ -145,10 +145,9 @@ class ComputerAssistanceHubController extends Controller
 
     public function recentRequests()
     {
-        $week = now()->subWeek();
+        //$week = now()->subWeek();
 
-        $recentRequest = TechAssist::where('start_date','>', $week)
-                                    ->where('status', '=', 'pending')
+        $recentRequest = TechAssist::where('status', '=', 'pending')
                                     ->orderBy('start_date', 'desc')
                                     ->get();
 
