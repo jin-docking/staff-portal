@@ -12,7 +12,7 @@ use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\ComputerAssistanceHubController;
 use App\Http\Controllers\Admin\AdminLeaveController;
 use App\Http\Controllers\ForgotPasswordController;
-use App\Models\Leave;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -87,7 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/techassist/{id}',[ComputerAssistanceHubController::class, 'show']);
     Route::match(['post', 'put'],'/techassist/update/{id}',[ComputerAssistanceHubController::class, 'update']);
     Route::delete('/techassist/{id}',[ComputerAssistanceHubController::class, 'destroy']);
-    Route::get('/techassist/recent-request',[ComputerAssistanceHubController::class, 'recentRequests']);
+    Route::get('techassist/recent-requests',[ComputerAssistanceHubController::class, 'recentAssitanceRequests']);
 
 });
 

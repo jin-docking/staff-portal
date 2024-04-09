@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 
@@ -185,17 +186,26 @@ class LeaveController extends Controller
         //$yearStart = $currentDate->month >= 4 ? $currentDate->startOfYear()->addMonths(3) : $currentDate->subYear()->startOfYear()->addMonths(3);
         $yearEnd = $yearStart->copy()->addYear()->subDay();
 
-        $leaves = Leave::select(DB::raw('user_id, COUNT(id) as total_leaves'))
-        ->whereBetween('start_date', [$yearStart, $yearEnd])
-        ->groupBy('user_id')
-        ->orderBy('total_leaves')
-        ->get();
-        
-        $highestLeaves = $leaves->last(); 
-        $lowestLeaves = $leaves->first();
+        try{
+            $leaves = Leave::select(DB::raw('user_id, COUNT(id) as total_leaves'))
+            ->where('approval_status', 'approved')
+            ->whereBetween('start_date', [$yearStart, $yearEnd])
+            ->groupBy('user_id')
+            ->orderBy('total_leaves')
+            ->get();
 
-        $highestUser = User::findOrFail($highestLeaves->user_id);
-        $lowestUser = User::findOrFail($lowestLeaves->user_id);
+            $highestLeaves = $leaves->last();
+            $lowestLeaves = $leaves->first();
+
+            $highestUser = User::findOrFail($highestLeaves->user_id);
+            $lowestUser = User::findOrFail($lowestLeaves->user_id);
+
+        } catch (Exception $e){
+
+            return response()->json(['message' => 'Leave is empty']);
+        }
+
+        
 
         return response()->json([
             'Highest_leave' => [

@@ -143,14 +143,27 @@ class ComputerAssistanceHubController extends Controller
         return response()->json(['message' => 'request has deleted'], 202);
     }
 
-    public function recentRequests()
+    public function recentAssitanceRequests()
     {
         //$week = now()->subWeek();
 
         $recentRequest = TechAssist::where('status', '=', 'pending')
-                                    ->orderBy('start_date', 'desc')
-                                    ->get();
+        ->orderBy('created_at', 'desc')
+        ->get();
 
-        return response()->json(['data' => $recentRequest], 200);
+        $data = [];
+
+        foreach ($recentRequest as $recent) {
+            $userData = [
+                'name' => $recent->user->first_name .' '. $recent->user->last_name,
+                'email' => $recent->user->email
+            ];
+            $data[] = [
+                'title' => $recent->title,
+                'user' => $userData
+            ];
+        }
+
+        return response()->json(['data' => $data], 200);
     }
 }
