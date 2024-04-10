@@ -138,25 +138,42 @@ class TeamController extends Controller
      */
     public function show($id)
     {
-        //$team = Team::findOrFail($id);
-        //$team = Team::with('user')->findOrFail($id)->get();
-        //$user = $team->user;
-        $team = Team::with('user.role:id,title')->find($id);
-        //$teamMembers = $team->user;
-
         
-        $teamMembersWithRoles = $team->user->map(function ($member) {
-             return [
-                'user_id' => $member->id,
-                'first_name' => $member->first_name,
-                'last_name' => $member->last_name, 
-                'role' => $member->role->title, 
-            ];
-         });
+        $team = Team::with(['user.role'])->find($id);
 
-        return response()->json(['team' => $team]);
+        if (!$team) {
+            return response()->json(['message' => 'Team not found'], 404);
+        }
 
-        //return response()->json($team);
+        $hierarchies = [];
+
+        $roles = Role::all()->pluck('title', 'id');
+
+        $hierarchy = [
+            'team_id' => $team->id,
+            'team_name' => $team->team_name,
+            'description' => $team->description,
+            'data' => [],
+        ];
+
+        foreach ($roles as $roleId => $roleTitle) {
+            if (strtolower($roleTitle) == 'admin' || strtolower($roleTitle) == 'hr'){
+                continue;
+            }
+            $hierarchy['data'][$roleTitle] = [];
+        }
+
+        foreach ($team->user as $member) {
+            $roleTitle = strtolower($member->role->title);
+            if (isset($hierarchy['data'][$roleTitle])) {
+                $hierarchy['data'][$roleTitle][] = $member;
+            }
+        }
+
+        $hierarchies[] = $hierarchy;
+
+        return response()->json(['teams' => $hierarchies]);
+        
     }
 
 
