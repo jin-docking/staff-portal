@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
-use Exception;
+
 use Illuminate\Support\Facades\DB;
 
 
@@ -170,7 +170,7 @@ class LeaveController extends Controller
            return response()->json(['data' => ['user_id' => $user->id,'leave_id' => $leave->id, 'leave_user_id' => $leave->user_id]]);*/
      }   
 
-
+//counts all users taken leave and returns users with highest and lowest leave.
     public function userLeaveCount()
     {
         $users = User::all();
@@ -186,26 +186,22 @@ class LeaveController extends Controller
         //$yearStart = $currentDate->month >= 4 ? $currentDate->startOfYear()->addMonths(3) : $currentDate->subYear()->startOfYear()->addMonths(3);
         $yearEnd = $yearStart->copy()->addYear()->subDay();
 
-        try{
-            $leaves = Leave::select(DB::raw('user_id, COUNT(id) as total_leaves'))
+        $leaves = Leave::select(DB::raw('user_id, COUNT(id) as total_leaves'))
             ->where('approval_status', 'approved')
             ->whereBetween('start_date', [$yearStart, $yearEnd])
             ->groupBy('user_id')
             ->orderBy('total_leaves')
             ->get();
 
-            $highestLeaves = $leaves->last();
-            $lowestLeaves = $leaves->first();
-
-            $highestUser = User::findOrFail($highestLeaves->user_id);
-            $lowestUser = User::findOrFail($lowestLeaves->user_id);
-
-        } catch (Exception $e){
-
-            return response()->json(['message' => 'Leave is empty']);
+        if(empty($leaves)){
+            return response()->json(['message' => 'leaves is empty']);
         }
 
-        
+        $highestLeaves = $leaves->last();
+        $lowestLeaves = $leaves->first();
+
+        $highestUser = User::findOrFail($highestLeaves->user_id);
+        $lowestUser = User::findOrFail($lowestLeaves->user_id);
 
         return response()->json([
             'Highest_leave' => [
@@ -244,14 +240,16 @@ class LeaveController extends Controller
         return response()->json(['message' => 'Leave deleted successfully']);
     }
     
-    public function recentLeaveRequests(){
-        //$previousdays = now()->subDays(2);
+    public function recentLeaveRequests()
+    {
+        $user = Auth::user();
 
-        $previousLeaves = Leave::where('approval_status', '=', 'pending')
-                                ->orderBy('start_date', 'desc')
-                                ->get();
+        $leaves = Leave::where('user_id', $user->id)->orderBy('created_at', 'DESC')->get();
 
-        return response()->json(['data' => $previousLeaves], 200);
+        $recentLeave = $leaves->first();
+
+        return response()->json(['data' => $recentLeave], 200);
+        
     }
 }
 
