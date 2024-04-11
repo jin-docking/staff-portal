@@ -68,15 +68,15 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::delete('user/{id}',[UserController::class, 'destroy']);
     
 });
-Route::get('/team/{id}', [TeamController::class, 'show']);
+
 //user's team list
 Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/team', [TeamController::class, 'index']);
-    Route::get('/team/team-count', [TeamController::class, 'teamCount']);
-    
+    Route::get('/team/show/{id}', [TeamController::class, 'show']);
     Route::get('/user-team/{id}', [TeamController::class, 'userTeam']);
     Route::get('/userteamlist', [TeamController::class, 'userTeamList']);
+    Route::get('/team/team-count', [TeamController::class, 'teamCount']);
     
 });
 

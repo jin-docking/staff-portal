@@ -162,9 +162,10 @@ class TeamController extends Controller
             }
             $hierarchy['data'][$roleTitle] = [];
         }
-
+        
         foreach ($team->user as $member) {
-            $roleTitle = strtolower($member->role->title);
+            $roleTitle = $member->role->title;
+            
             if (isset($hierarchy['data'][$roleTitle])) {
                 $hierarchy['data'][$roleTitle][] = $member;
             }
@@ -172,7 +173,7 @@ class TeamController extends Controller
 
         $hierarchies[] = $hierarchy;
 
-        return response()->json(['teams' => $hierarchies]);
+        return response()->json([ 'teams' => $hierarchies]);
         
     }
 
@@ -246,7 +247,7 @@ class TeamController extends Controller
 
         } else {
 
-            return response()->json(['message' => 'team not found'], 404);
+            return response()->json(['message' => 'Team not found'], 404);
 
         }
     }
