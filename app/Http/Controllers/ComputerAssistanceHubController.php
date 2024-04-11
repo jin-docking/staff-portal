@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Exception;
 
 
 class ComputerAssistanceHubController extends Controller
@@ -166,4 +167,18 @@ class ComputerAssistanceHubController extends Controller
 
         return response()->json(['data' => $data], 200);
     }
+
+    public function recentRequestStatus()
+    {
+
+        $user = Auth::user();
+            
+        $assistanceRequest = TechAssist::where('user_id', $user->id)->orderBy('created_at', 'DESC')->get();
+            
+        $requestStatus = $assistanceRequest->first();
+            
+        return response()->json(['data' => $requestStatus], 200);
+        
+    }
+    
 }
