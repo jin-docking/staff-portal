@@ -150,6 +150,7 @@ class ComputerAssistanceHubController extends Controller
 
         $recentRequest = TechAssist::where('status', '=', 'pending')
         ->orderBy('created_at', 'desc')
+        ->limit(5)
         ->get();
 
         $data = [];
@@ -161,6 +162,7 @@ class ComputerAssistanceHubController extends Controller
             ];
             $data[] = [
                 'title' => $recent->title,
+                'status' => $recent->status,
                 'user' => $userData
             ];
         }

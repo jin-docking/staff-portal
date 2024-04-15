@@ -68,12 +68,12 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::delete('user/{id}',[UserController::class, 'destroy']);
     
 });
-
+Route::get('/team/show/{id}', [TeamController::class, 'show']);
 //user's team list
 Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/team', [TeamController::class, 'index']);
-    Route::get('/team/show/{id}', [TeamController::class, 'show']);
+    
     Route::get('/user-team/{id}', [TeamController::class, 'userTeam']);
     Route::get('/userteamlist', [TeamController::class, 'userTeamList']);
     Route::get('/team/team-count', [TeamController::class, 'teamCount']);
@@ -122,6 +122,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/leaveview/{id}', [LeaveController::class, 'show']);  
     Route::get('/showLeave', [LeaveController::class, 'showLeave']); 
     Route::get('leave/recent-leaves',[LeaveController::class, 'recentLeaveRequests']);  
+    Route::get('leave/new-leaves',[LeaveController::class, 'recentLeaves']);
 
 });
 
