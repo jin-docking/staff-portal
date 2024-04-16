@@ -89,7 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/techassist/show/{id}',[ComputerAssistanceHubController::class, 'show']);
     Route::match(['post', 'put'],'/techassist/update/{id}',[ComputerAssistanceHubController::class, 'update']);
     Route::delete('/techassist/{id}',[ComputerAssistanceHubController::class, 'destroy']);
-    Route::get('techassist/request-staus',[ComputerAssistanceHubController::class, 'recentRequestStatus']);
+    Route::get('techassist/request-status',[ComputerAssistanceHubController::class, 'recentRequestStatus']);
 
 });
 
