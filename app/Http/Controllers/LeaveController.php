@@ -96,7 +96,7 @@ class LeaveController extends Controller
         $user = Auth::user();
        
         $currentDate = now();
-
+        //calculates financial year
         $yearStart = $currentDate->month >= 4 ? $currentDate->startOfYear()->addMonths(3) : $currentDate->subYear()->startOfYear()->addMonths(3);
         $yearEnd = $yearStart->copy()->addYear()->subDay();
         
@@ -105,6 +105,7 @@ class LeaveController extends Controller
         ->whereBetween('start_date', [$yearStart, $yearEnd])
         ->get();
 
+        //Calculate users current leave count
         $annualLeave = $user->role->leaves; 
         $takenLeaveCount = $leaveRecords->count();
         $availableLeave = max(0, $annualLeave - $takenLeaveCount);
@@ -177,6 +178,7 @@ class LeaveController extends Controller
 
         $currentDate = now();
 
+        //calculates financial year
         $yearStart = $currentDate->copy()->startOfYear();
         if ($currentDate->month >= 4) {
             $yearStart->addMonths(3);
@@ -250,6 +252,32 @@ class LeaveController extends Controller
 
         return response()->json(['data' => $recentLeave], 200);
         
+    }
+
+    public function recentLeaves()
+    {
+        $recentRequest = Leave::where('approval_status', '=', 'pending')
+        ->orderBy('created_at', 'desc')
+        ->limit(5)
+        ->get();
+
+        $data = [];
+
+        foreach ($recentRequest as $recent) {
+            $userData = [
+                'name' => $recent->user->first_name .' '. $recent->user->last_name,
+                'email' => $recent->user->email
+            ];
+            $data[] = [
+                'title' => $recent->title,
+                'start_date' => $recent->start_date,
+                'description' => $recent->description,
+                'status' => $recent->approval_status,
+                'user' => $userData
+            ];
+        }
+
+        return response()->json(['data' => $data], 200);
     }
 }
 

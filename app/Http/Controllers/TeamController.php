@@ -160,11 +160,11 @@ class TeamController extends Controller
             if (strtolower($roleTitle) == 'admin' || strtolower($roleTitle) == 'hr'){
                 continue;
             }
-            $hierarchy['data'][$roleTitle] = [];
+            $hierarchy['data'][str_replace(' ', '', $roleTitle)] = [];
         }
         
         foreach ($team->user as $member) {
-            $roleTitle = $member->role->title;
+            $roleTitle = str_replace(' ', '', $member->role->title);
             
             if (isset($hierarchy['data'][$roleTitle])) {
                 $hierarchy['data'][$roleTitle][] = $member;
