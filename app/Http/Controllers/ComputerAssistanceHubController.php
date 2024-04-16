@@ -37,6 +37,15 @@ class ComputerAssistanceHubController extends Controller
                     'email' => $hub->user->email]]);*/
     }
 
+    public function userShow()
+    {
+        $user = Auth::user();
+
+        $hub = TechAssist::where('user_id', $user->id)->get();
+
+        return response()->json(['data' => $hub]);
+
+    }
     public function store(Request $request)
     {
         $user = Auth::user();
