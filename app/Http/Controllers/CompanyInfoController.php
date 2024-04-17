@@ -16,10 +16,10 @@ class CompanyInfoController extends Controller
     {
         $info = CompanyInfo::all();
 
-        if($info->empty()){
+        /*if($info->empty()){
             return response()->json(['message' => 'nothing to show'], 404);
 
-        }
+        }*/
 
         return response()->json($info);
     }
