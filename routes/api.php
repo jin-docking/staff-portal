@@ -109,7 +109,7 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::put('/role/update/{id}', [UserRoleController::class,'update']);
     Route::get('/role/show/{id}', [UserRoleController::class, 'show']);  
     Route::get('/roles', [UserRoleController::class, 'index']);  
-
+    Route::delete('/role/{id}', [UserRoleController::class, 'destroy']); 
 });
 
 //leave application

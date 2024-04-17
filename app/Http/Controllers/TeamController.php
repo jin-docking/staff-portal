@@ -107,10 +107,10 @@ class TeamController extends Controller
             'project_manager_id' => 'required|exists:users,id',
             'frontend_team_lead_id' => 'required|exists:users,id',
             'backend_team_lead_id' => 'required|exists:users,id',
-            //'frontend_developers' => 'required|array',
-            //'frontend_developers.*' => 'exists:users,id',
-            //'backend_developers' => 'required|array',
-            //'backend_developers.*' => 'exists:users,id',
+            'frontend_developers' => 'required|array',
+            'frontend_developers.*' => 'exists:users,id',
+            'backend_developers' => 'required|array',
+            'backend_developers.*' => 'exists:users,id',
         ]);
     
         $team = Team::create([
