@@ -141,14 +141,14 @@ class TeamController extends Controller
         
         $team = Team::with('user.role:id,title')->find($id);
 
-        $teamMembersWithRoles = $team->user->map(function ($member) {
+        /*$teamMembersWithRoles = $team->user->map(function ($member) {
              return [
                 'user_id' => $member->id,
                 'first_name' => $member->first_name,
                 'last_name' => $member->last_name, 
                 'role' => $member->role->title, 
             ];
-         });
+         });*/
         
         return response()->json(['data' => $team]);
         
@@ -260,5 +260,40 @@ class TeamController extends Controller
 
             return response()->json(['message' => 'team not found'], 404);
         }
+    }
+
+    public function showDevelopers($id)
+    {
+        $team = Team::with('user.role:id,title')->find($id);
+
+        $frontendDevelopers = [];
+        $backendDevelopers = [];
+
+        $teamMembersWithRoles = $team->user->map(function ($member) use (&$frontendDevelopers, &$backendDevelopers) {
+            $userData = [
+                'user_id' => $member->id,
+                'first_name' => $member->first_name,
+                'last_name' => $member->last_name,
+                'email' => $member->email,
+                'role' => $member->role->title,
+            ];
+
+            // Determine role and add to respective array
+            if ($member->role->title === 'frontend developer') {
+                $frontendDevelopers[] = $userData;
+            } elseif ($member->role->title === 'backend developer') {
+                $backendDevelopers[] = $userData;
+            }
+
+            return $userData;
+        });
+
+        $responseData = [
+            'data' => $team,
+            'frontend_developers' => $frontendDevelopers,
+            'backend_developers' => $backendDevelopers,
+        ];
+
+        return response()->json($responseData);
     }
 }
