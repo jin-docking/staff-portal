@@ -279,9 +279,9 @@ class TeamController extends Controller
             ];
 
             // Determine role and add to respective array
-            if ($member->role->title === 'frontend developer') {
+            if (strtolower($member->role->title) == 'frontend developer') {
                 $frontendDevelopers[] = $userData;
-            } elseif ($member->role->title === 'backend developer') {
+            } elseif (strtolower($member->role->title) == 'backend developer') {
                 $backendDevelopers[] = $userData;
             }
 
