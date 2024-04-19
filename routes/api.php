@@ -139,14 +139,13 @@ Route::middleware(['auth:sanctum','role:Admin,HR'])->group(function () {
     Route::post('/leave/create/{id}', [AdminLeaveController::class, 'store']);   
    
 });
-Route::post('/companyinfo/create', [CompanyInfoController::class, 'store']);
+
 //managing company info
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     
-    
-    
+    Route::post('/companyinfo/create', [CompanyInfoController::class, 'store']);
     Route::get('/companyinfo/show/{id}', [CompanyInfoController::class, 'show']);   
-    Route::put('/companyinfo/update/{id}', [CompanyInfoController::class, 'update']);
+    Route::match(['post', 'put'],'/companyinfo/update/{id}', [CompanyInfoController::class, 'update']);
     Route::delete('/companyinfo/delete/{id}', [CompanyInfoController::class,'destroy']);
 });
 //managing company holiday
