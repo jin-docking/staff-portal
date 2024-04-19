@@ -14,14 +14,13 @@ class CompanyInfoController extends Controller
      */
     public function index()
     {
-        $info = CompanyInfo::all();
+        $infos = CompanyInfo::all();
 
-        /*if($info->empty()){
-            return response()->json(['message' => 'nothing to show'], 404);
+        foreach ($infos as $info){
+            $info->logo = asset('storage/' . $info->logo);
+        }
 
-        }*/
-
-        return response()->json($info);
+        return response()->json($infos);
     }
 
     /**

@@ -36,6 +36,8 @@ Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEm
 Route::post('password/reset', [ForgotPasswordController::class, 'reset'])->name('password.reset');
 Route::get('holidays', [HolidayController::class, 'index']);
 Route::post('/role/create', [UserRoleController::class, 'store']);
+
+Route::get('companyinfo/', [CompanyInfoController::class, 'index']);
 /*Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 
@@ -68,12 +70,12 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::delete('user/{id}',[UserController::class, 'destroy']);
     
 });
-Route::get('/team/show-developer/{id}', [TeamController::class, 'showDevelopers']);
+
 //user's team list
 Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/team', [TeamController::class, 'index']);
-    
+    Route::get('/team/show-developer/{id}', [TeamController::class, 'showDevelopers']);
     Route::get('/user-team/{id}', [TeamController::class, 'userTeam']);
     Route::get('/userteamlist', [TeamController::class, 'userTeamList']);
     Route::get('/team/team-count', [TeamController::class, 'teamCount']);
@@ -137,12 +139,12 @@ Route::middleware(['auth:sanctum','role:Admin,HR'])->group(function () {
     Route::post('/leave/create/{id}', [AdminLeaveController::class, 'store']);   
    
 });
-
+Route::post('/companyinfo/create', [CompanyInfoController::class, 'store']);
 //managing company info
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     
-    Route::get('companyinfo/', [CompanyInfoController::class, 'index']);
-    Route::post('/companyinfo/create', [CompanyInfoController::class, 'store']);
+    
+    
     Route::get('/companyinfo/show/{id}', [CompanyInfoController::class, 'show']);   
     Route::put('/companyinfo/update/{id}', [CompanyInfoController::class, 'update']);
     Route::delete('/companyinfo/delete/{id}', [CompanyInfoController::class,'destroy']);
