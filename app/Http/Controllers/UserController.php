@@ -20,7 +20,7 @@ class UserController extends Controller
     public function index()
     {
        
-        $user = User::with(['userMeta', 'role'])->get();
+        $user = User::with(['userMeta', 'role'])->orderBy('first_name', 'ASC')->paginate(5);
 
         return response()->json($user);
 
