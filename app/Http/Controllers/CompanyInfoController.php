@@ -99,7 +99,7 @@ class CompanyInfoController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'logo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'email' => 'required|string|email',
             'address' => 'required|string',
             'contact_no' => 'required'
