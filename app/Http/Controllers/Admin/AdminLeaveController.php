@@ -13,46 +13,73 @@ class AdminLeaveController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-    $admin = Auth::user(); 
- 
-    $pendingLeaves = Leave::where('approval_status', 'pending')->get();
+        // Get request parameters for year, month, and date
+        $year = $request->input('year');
+        $month = $request->input('month');
+        $date = $request->input('date');
+    
+        // Start query with base condition
+        $query = Leave::query();
+    
+        // Apply filters based on provided parameters
+        if ($year) {
+            $query->whereYear('start_date', $year);
+        }
+        if ($month) {
+            $query->whereMonth('start_date', $month);
+        }
+        if ($date) {
+            $query->whereDate('start_date', $date);
+        }
 
-    $allLeaves = Leave::all();
-
-    $leaves = $pendingLeaves->concat($allLeaves->diff($pendingLeaves));
-
-    foreach ($leaves as $leave) {
-        $user = User::find($leave->user_id); 
-        $leave->first_name = $user->first_name;
-        $leave->last_name = $user->last_name; 
-        $leave->role = $user->role;
-
-        $creator = User::find($leave->created_by);
-        $leave->creator_name = $creator ? $creator->first_name . ' ' . $creator->last_name : null;
-
+        // Order the results with pending leaves first
+        $query->orderByRaw("CASE WHEN approval_status = 'pending' THEN 0 ELSE 1 END");
+        
+        // Get filtered leaves
+        $leaves = $query->get();
+    
+        // Eager load users to avoid N+1 queries
+        $userIds = $leaves->pluck('user_id')->unique()->toArray();
+        $users = User::whereIn('id', $userIds)->get()->keyBy('id');
+    
+        foreach ($leaves as $leave) {
+            // Retrieve user associated with the leave
+            $user = $users->get($leave->user_id);
+            if ($user) {
+                $leave->first_name = $user->first_name;
+                $leave->last_name = $user->last_name;
+                $leave->role = $user->role;
+            }
+    
+            // Retrieve creator of the leave
+            $creator = $users->get($leave->created_by);
+            if ($creator) {
+                $leave->creator_name = ($leave->user_id == $creator->id) ? 'Self' : $creator->first_name . ' ' . $creator->last_name;
+            }
+        }
+    
+        return response()->json($leaves);
     }
 
-    return response()->json($leaves);
-    }
 
-    /**
-     * Display a specific leave
-     */
+        /**
+         * Display a specific leave
+         */
 
     public function show($id)
     {
         $leave = Leave::find($id);
-    
+        
         if (!$leave) {
             return response()->json(['error' => 'Leave not found'], 404);
         }
     
         $user = Auth::user();
-
+        
         $creator = User::find($leave->created_by);
-        $leave->creator_name = $creator ? $creator->first_name . ' ' . $creator->last_name : null;
+        $leave->creator_name = ($leave->user_id == $creator->id) ? 'Self' : $creator->first_name . ' ' . $creator->last_name;
 
         return response()->json($leave);
     

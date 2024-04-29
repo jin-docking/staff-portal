@@ -46,6 +46,7 @@ class ComputerAssistanceHubController extends Controller
         return response()->json(['data' => $hub]);
 
     }
+    
     public function store(Request $request)
     {
         $user = Auth::user();
