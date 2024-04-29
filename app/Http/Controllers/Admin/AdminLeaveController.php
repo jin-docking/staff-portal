@@ -19,10 +19,13 @@ class AdminLeaveController extends Controller
         $year = $request->input('year');
         $month = $request->input('month');
         $date = $request->input('date');
-    
-        // Start query with base condition
-        $query = Leave::query();
-    
+
+        // Get request parameter for Leave status
+        $status = $request->input('status');
+
+        // Start query with base condition and eager load users
+        $query = Leave::with('user');
+
         // Apply filters based on provided parameters
         if ($year) {
             $query->whereYear('start_date', $year);
@@ -33,35 +36,39 @@ class AdminLeaveController extends Controller
         if ($date) {
             $query->whereDate('start_date', $date);
         }
+        if ($status) {
+            $query->where('approval_status', $status);
+        }
 
         // Order the results with pending leaves first
-        $query->orderByRaw("CASE WHEN approval_status = 'pending' THEN 0 ELSE 1 END");
-        
+        $query->orderBy('approval_status', 'asc');
+
         // Get filtered leaves
         $leaves = $query->get();
-    
-        // Eager load users to avoid N+1 queries
-        $userIds = $leaves->pluck('user_id')->unique()->toArray();
-        $users = User::whereIn('id', $userIds)->get()->keyBy('id');
-    
-        foreach ($leaves as $leave) {
-            // Retrieve user associated with the leave
-            $user = $users->get($leave->user_id);
+
+        // Process leaves
+        $leaves->each(function ($leave) {
+            // Get user associated with the leave
+            $user = $leave->user;
+
+            // Assign user attributes if user exists
             if ($user) {
                 $leave->first_name = $user->first_name;
                 $leave->last_name = $user->last_name;
                 $leave->role = $user->role;
             }
-    
+
             // Retrieve creator of the leave
-            $creator = $users->get($leave->created_by);
-            if ($creator) {
-                $leave->creator_name = ($leave->user_id == $creator->id) ? 'Self' : $creator->first_name . ' ' . $creator->last_name;
-            }
-        }
-    
+            $creatorName = $leave->user_id == $leave->created_by ? 'Self' : $leave->creator->full_name;
+            $leave->creator_name = $creatorName;
+        });
+
+        // Remove unnecessary fields
+        $leaves->makeHidden(['user', 'creator']);
+
         return response()->json($leaves);
     }
+
 
 
         /**
