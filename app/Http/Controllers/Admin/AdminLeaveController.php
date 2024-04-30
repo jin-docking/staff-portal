@@ -25,7 +25,7 @@ class AdminLeaveController extends Controller
         $status = $request->input('status');
 
         // Start query with base condition and eager load users
-        $query = Leave::with('user');
+        $query = Leave::with('user:id,first_name,last_name,role');
 
         // Apply filters based on provided parameters
         if ($year) {
@@ -41,7 +41,7 @@ class AdminLeaveController extends Controller
             $query->where('approval_status', $status);
         }
         if ($userId) {
-            $query->where('user_id', $userId);
+            
         }
 
         // Order the results with pending leaves first
@@ -61,14 +61,15 @@ class AdminLeaveController extends Controller
                 $leave->last_name = $user->last_name;
                 $leave->role = $user->role;
             }
-
+            //$creator = User::where('id', $leave->created_by);
+            
             // Retrieve creator of the leave
-            $creatorName = $leave->user_id == $leave->created_by ? 'Self' : $leave->creator->first_name .' '. $leave->creator->last_name;
+            $creatorName = $leave->user_id === $leave->created_by ? 'Self' : User::where('id', $leave->created_by)->value('first_name').' '.User::where('id', $leave->created_by)->value('last_name');
             $leave->creator_name = $creatorName;
         });
 
         // Remove unnecessary fields
-        $leaves->makeHidden(['user', 'creator']);
+        $leaves->makeHidden(['user']);
 
         return response()->json($leaves);
     }
