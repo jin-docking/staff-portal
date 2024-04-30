@@ -15,10 +15,11 @@ class AdminLeaveController extends Controller
      */
     public function index(Request $request)
     {
-        // Get request parameters for year, month, and date
+        // Get request parameters for year, month, date and user Id
         $year = $request->input('year');
         $month = $request->input('month');
         $date = $request->input('date');
+        $userId = $request->input('user_id');
 
         // Get request parameter for Leave status
         $status = $request->input('status');
@@ -38,6 +39,9 @@ class AdminLeaveController extends Controller
         }
         if ($status) {
             $query->where('approval_status', $status);
+        }
+        if ($userId) {
+            $query->where('user_id', $userId);
         }
 
         // Order the results with pending leaves first
@@ -59,7 +63,7 @@ class AdminLeaveController extends Controller
             }
 
             // Retrieve creator of the leave
-            $creatorName = $leave->user_id == $leave->created_by ? 'Self' : $leave->creator->full_name;
+            $creatorName = $leave->user_id == $leave->created_by ? 'Self' : $leave->creator->first_name .' '. $leave->creator->last_name;
             $leave->creator_name = $creatorName;
         });
 

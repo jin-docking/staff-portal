@@ -28,19 +28,25 @@ class TeamController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) 
-        {
-                return response()->json(['message' => 'User not authenticated'], 401);
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated'], 401);
         }
 
-        $teams = $user->teams()->get();
+        $teams = $user->teams()->with(['projectManager:id,first_name,last_name', 'frontendTeamLead:id,first_name,last_name', 'backendTeamLead:id,first_name,last_name'])->get();
 
-        if ($teams->isEmpty()) {
-            return response()->json(['message' => 'User does not belong to any team'], 404);
-        }
+        $teams->transform(function ($team) {
+            $team->project_manager = $team->projectManager ? $team->projectManager->first_name .' '. $team->projectManager->last_name : null;
+            $team->frontend_teamlead = $team->frontendTeamLead ? $team->frontendTeamLead->first_name .' '. $team->frontendTeamLead->last_name : null;
+            $team->backend_teamlead = $team->backendTeamLead ? $team->backendTeamLead->first_name .' '. $team->backendTeamLead->last_name : null;
+            unset($team->projectManager);
+            unset($team->frontendTeamLead);
+            unset($team->backendTeamLead);
+            return collect($team)->except(['projectManager', 'frontendTeamLead', 'backendTeamLead']);
+        });
 
         return response()->json($teams);
     }
+
 
 
     public function userTeam($id)
