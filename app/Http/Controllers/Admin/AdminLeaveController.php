@@ -25,7 +25,7 @@ class AdminLeaveController extends Controller
         $status = $request->input('status');
 
         // Start query with base condition and eager load users
-        $query = Leave::with('user:id,first_name,last_name,role');
+        $query = Leave::with('user');
 
         // Apply filters based on provided parameters
         if ($year) {
