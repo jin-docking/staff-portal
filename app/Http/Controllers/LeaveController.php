@@ -27,8 +27,8 @@ class LeaveController extends Controller
         if ($leaves->isNotEmpty()) {
 
             foreach ($leaves as $leave) {
-                $creator = User::find($leave->created_by);
-                $leave->creator_name = $creator ? $creator->first_name . ' ' . $creator->last_name : null;
+                $creatorName = $leave->user_id === $leave->created_by ? 'Self' : User::where('id', $leave->created_by)->value('first_name').' '.User::where('id', $leave->created_by)->value('last_name');
+                $leave->creator_name = $creatorName;
             }
 
             return response()->json($leaves);
@@ -246,11 +246,9 @@ class LeaveController extends Controller
     {
         $user = Auth::user();
 
-        $leaves = Leave::where('user_id', $user->id)->orderBy('created_at', 'DESC')->get();
+        $leaves = Leave::where('user_id', $user->id)->orderBy('created_at', 'DESC')->limit(3)->get();
 
-        $recentLeave = $leaves->first();
-
-        return response()->json(['data' => $recentLeave], 200);
+        return response()->json(['data' => $leaves], 200);
         
     }
 

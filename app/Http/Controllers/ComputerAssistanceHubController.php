@@ -185,11 +185,9 @@ class ComputerAssistanceHubController extends Controller
 
         $user = Auth::user();
             
-        $assistanceRequest = TechAssist::where('user_id', $user->id)->orderBy('created_at', 'DESC')->get();
+        $assistanceRequest = TechAssist::where('user_id', $user->id)->orderBy('created_at', 'DESC')->limit(3)->get();
             
-        $requestStatus = $assistanceRequest->first();
-            
-        return response()->json(['data' => $requestStatus], 200);
+        return response()->json(['data' => $assistanceRequest], 200);
         
     }
     
