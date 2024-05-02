@@ -18,7 +18,7 @@ class AdminLeaveController extends Controller
         // Get request parameters for year, month, date and user Id
         $year = $request->input('year');
         $month = $request->input('month');
-        $date = $request->input('date');
+        $day = $request->input('day');
         $userId = $request->input('user_id');
 
         // Get request parameter for Leave status
@@ -34,14 +34,16 @@ class AdminLeaveController extends Controller
         if ($month) {
             $query->whereMonth('start_date', $month);
         }
-        if ($date) {
-            $query->whereDate('start_date', $date);
+        if ($day) {
+        // Convert day to date format (YYYY-MM-DD)
+        $dayDate = Carbon::createFromDate($year, $month, $day);
+        $query->whereDate('created_at', $dayDate);
         }
         if ($status) {
             $query->where('approval_status', $status);
         }
         if ($userId) {
-            
+            $query->where('user_id', $userId);
         }
 
         // Order the results with pending leaves first
