@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
-
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 
@@ -94,41 +94,46 @@ class LeaveController extends Controller
     public function showLeave()
     {
         $user = Auth::user();
-       
+    
+        // Get the current date
         $currentDate = now();
-        //calculates financial year
+        
+        // Calculate financial year
         $yearStart = $currentDate->month >= 4 ? $currentDate->startOfYear()->addMonths(3) : $currentDate->subYear()->startOfYear()->addMonths(3);
         $yearEnd = $yearStart->copy()->addYear()->subDay();
         
+        // Retrieve leave records for the user within the current financial year
         $leaveRecords = Leave::where('user_id', $user->id)
-        ->where('approval_status', 'approved')
-        ->whereBetween('start_date', [$yearStart, $yearEnd])
-        ->get();
+            ->where('approval_status', 'approved')
+            ->whereBetween('start_date', [$yearStart, $yearEnd])
+            ->get();
 
-        //Calculate users current leave count
-        $annualLeave = $user->role->leaves; 
+        // Calculate available leave count
+        $annualLeave = $user->role->leaves;
         $takenLeaveCount = $leaveRecords->count();
         $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
-        $leaveCategories = $leaveRecords->pluck('category')->unique()->filter();
-        
-        $leaveByCategory = [];
-        $totalLeaveByCategory = [];
+        // Group leave records by category and calculate total leave for each category
+        $leaveByCategory = $leaveRecords->groupBy('category')->map->count();
 
-        foreach ($leaveCategories as $category) {
-            $leaveByCategory[$category] = $leaveRecords->where('category', $category);
-            $totalLeaveByCategory[$category] = $leaveByCategory[$category]->count();
-        }
+        $firstHalfRecords = $leaveRecords->filter(function ($record) use ($yearStart) {
+            return $record->start_date->lte($yearStart->copy()->addMonths(5));
+        });
+
+        $secondHalfRecords = $leaveRecords->filter(function ($record) use ($yearStart) {
+            return $record->start_date->gt($yearStart->copy()->addMonths(5));
+        });
 
         return response()->json([
             'total_leave' => $annualLeave,
             'leave_records' => $leaveRecords,
+            'first_half_records' => $firstHalfRecords,
+            'second_half_records' => $secondHalfRecords,
             'available_leave' => $availableLeave,
-            //'leave_by_category' => $leaveByCategory,
-            'total_leave_by_category' => $totalLeaveByCategory,
+            'total_leave_by_category' => $leaveByCategory,
         ]);
-    
-    }    
+    }
+   
    
     /**
      * Update the specified resource in storage.
@@ -252,30 +257,5 @@ class LeaveController extends Controller
         
     }
 
-    public function recentLeaves()
-    {
-        $recentRequest = Leave::where('approval_status', '=', 'pending')
-        ->orderBy('created_at', 'desc')
-        ->limit(5)
-        ->get();
-
-        $data = [];
-
-        foreach ($recentRequest as $recent) {
-            $userData = [
-                'name' => $recent->user->first_name .' '. $recent->user->last_name,
-                'email' => $recent->user->email
-            ];
-            $data[] = [
-                'title' => $recent->title,
-                'start_date' => $recent->start_date,
-                'description' => $recent->description,
-                'status' => $recent->approval_status,
-                'user' => $userData
-            ];
-        }
-
-        return response()->json(['data' => $data], 200);
-    }
 }
 

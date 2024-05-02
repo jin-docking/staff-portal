@@ -125,7 +125,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/leaveview/{id}', [LeaveController::class, 'show']);  
     Route::get('/showLeave', [LeaveController::class, 'showLeave']); 
     Route::get('leave/recent-leaves',[LeaveController::class, 'recentLeaveRequests']);  
-    Route::get('leave/new-leaves',[LeaveController::class, 'recentLeaves']);
+    
 
 });
 
@@ -136,7 +136,8 @@ Route::middleware(['auth:sanctum','role:Admin,HR'])->group(function () {
     Route::get('/leave/view/{id}', [AdminLeaveController::class, 'show']);  
     Route::put('/leave/update/{id}', [AdminLeaveController::class,'update']);
     Route::delete('/leave/delete/{id}', [AdminLeaveController::class,'destroy']);
-    Route::post('/leave/create/{id}', [AdminLeaveController::class, 'store']);   
+    Route::post('/leave/create/{id}', [AdminLeaveController::class, 'store']);  
+    Route::get('leave/new-leaves',[AdminLeaveController::class, 'recentLeaves']);
    
 });
 

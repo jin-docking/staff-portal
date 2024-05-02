@@ -6,7 +6,11 @@ use App\Models\Leave;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\LeaveController;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+
 
 class AdminLeaveController extends Controller
 {
@@ -15,29 +19,30 @@ class AdminLeaveController extends Controller
      */
     public function index(Request $request)
     {
-        // Get request parameters for year, month, date and user Id
+        // Get request parameters for year, month, day, user Id and status
         $year = $request->input('year');
         $month = $request->input('month');
         $day = $request->input('day');
         $userId = $request->input('user_id');
-
-        // Get request parameter for Leave status
         $status = $request->input('status');
 
-        // Start query with base condition and eager load users
+        //// Start query with base condition and eager load users
         $query = Leave::with('user');
 
-        // Apply filters based on provided parameters
         if ($year) {
-            $query->whereYear('start_date', $year);
+            // Set financial year dates
+            $financialYearStart = Carbon::createFromDate($year, 4, 1);
+            $financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
+            //Log::info('Financial Year Start: ' . $financialYearStart->toDateString());
+            // Filter by financial year
+            $query->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
         }
         if ($month) {
             $query->whereMonth('start_date', $month);
         }
         if ($day) {
-        // Convert day to date format (YYYY-MM-DD)
-        $dayDate = Carbon::createFromDate($year, $month, $day);
-        $query->whereDate('created_at', $dayDate);
+            $dayDate = Carbon::createFromDate($year, $month, $day);
+            $query->whereDate('start_date', $dayDate);
         }
         if ($status) {
             $query->where('approval_status', $status);
@@ -49,23 +54,64 @@ class AdminLeaveController extends Controller
         // Order the results with pending leaves first
         $query->orderBy('approval_status', 'asc');
 
-        // Get filtered leaves
         $leaves = $query->get();
+
+        $leaveReport = [];
+
+        if ($userId) {
+
+            // Filter leave records by financial year
+            $leaveRecordsQuery = Leave::where('user_id', $userId)
+                ->where('approval_status', 'approved')
+                ->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
+
+            if ($month) {
+                $leaveRecordsQuery->whereMonth('start_date', $month);
+            }
+
+            $leaveRecords = $leaveRecordsQuery->get();
+
+            
+
+            $user = User::find($userId);
+            $annualLeave = $user->role->leaves;
+            $takenLeaveCount = $leaveRecords->count();
+            $availableLeave = max(0, $annualLeave - $takenLeaveCount);
+
+            //Log::info('Leave Records Count: ' . $leaveRecords->count());
+
+            $leaveByCategory = $leaveRecords->groupBy('category')->map->count();
+
+            $firstHalfRecords = $leaveRecords->filter(function ($record) use ($financialYearStart) {
+                return $record->start_date->lte($financialYearStart->copy()->addMonths(5));
+            });
+    
+            $secondHalfRecords = $leaveRecords->filter(function ($record) use ($financialYearStart) {
+                return $record->start_date->gt($financialYearStart->copy()->addMonths(5));
+            });
+
+            //Log::info('Is in Second Half: ' . ($leaveRecords[0]->start_date->gt($financialYearStart->copy()->addMonths(5)) ? 'Yes' : 'No'));
+
+
+            $leaveReport = [
+                'total_leave' => $annualLeave,
+                'first_half_records' => $firstHalfRecords,
+                'second_half_records' => $secondHalfRecords,
+                'available_leave' => $availableLeave,
+                'total_leave_by_category' => $leaveByCategory,
+            ];
+        }
 
         // Process leaves
         $leaves->each(function ($leave) {
-            // Get user associated with the leave
             $user = $leave->user;
 
-            // Assign user attributes if user exists
             if ($user) {
                 $leave->first_name = $user->first_name;
                 $leave->last_name = $user->last_name;
                 $leave->role = $user->role;
             }
-            //$creator = User::where('id', $leave->created_by);
-            
-            // Retrieve creator of the leave
+
             $creatorName = $leave->user_id === $leave->created_by ? 'Self' : User::where('id', $leave->created_by)->value('first_name').' '.User::where('id', $leave->created_by)->value('last_name');
             $leave->creator_name = $creatorName;
         });
@@ -73,10 +119,8 @@ class AdminLeaveController extends Controller
         // Remove unnecessary fields
         $leaves->makeHidden(['user']);
 
-        return response()->json($leaves);
+        return response()->json(['leave_data' => $leaves, 'leave_report' => $leaveReport]);
     }
-
-
 
         /**
          * Display a specific leave
@@ -93,7 +137,8 @@ class AdminLeaveController extends Controller
         $user = Auth::user();
         
         $creator = User::find($leave->created_by);
-        $leave->creator_name = ($leave->user_id == $creator->id) ? 'Self' : $creator->first_name . ' ' . $creator->last_name;
+        $leave->user_name =  $user->first_name . ' ' . $user->last_name;
+        $leave->creator_name = $creator->first_name . ' ' . $creator->last_name;
 
         return response()->json($leave);
     
@@ -193,5 +238,30 @@ class AdminLeaveController extends Controller
         ]);
     }
 
+    public function recentLeaves()
+    {
+        $recentRequest = Leave::where('approval_status', '=', 'pending')
+        ->orderBy('created_at', 'desc')
+        ->limit(3)
+        ->get();
+
+        $data = [];
+
+        foreach ($recentRequest as $recent) {
+            $userData = [
+                'name' => $recent->user->first_name .' '. $recent->user->last_name,
+                'email' => $recent->user->email
+            ];
+            $data[] = [
+                'title' => $recent->title,
+                'start_date' => $recent->start_date,
+                'description' => $recent->description,
+                'status' => $recent->approval_status,
+                'user' => $userData
+            ];
+        }
+
+        return response()->json(['data' => $data], 200);
+    }
 
 }
