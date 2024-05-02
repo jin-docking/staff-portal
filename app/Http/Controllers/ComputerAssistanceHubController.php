@@ -160,7 +160,7 @@ class ComputerAssistanceHubController extends Controller
 
         $recentRequest = TechAssist::where('status', '=', 'pending')
         ->orderBy('created_at', 'desc')
-        ->limit(5)
+        ->limit(3)
         ->get();
 
         $data = [];

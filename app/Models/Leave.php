@@ -9,6 +9,13 @@ class Leave extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' =>'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     protected $fillable = [
         'user_id',
         'created_by',
