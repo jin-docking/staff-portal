@@ -70,9 +70,7 @@ class AdminLeaveController extends Controller
             }
 
             $leaveRecords = $leaveRecordsQuery->get();
-
             
-
             $user = User::find($userId);
             $annualLeave = $user->role->leaves;
             $takenLeaveCount = $leaveRecords->count();
@@ -84,12 +82,12 @@ class AdminLeaveController extends Controller
 
             $firstHalfRecords = $leaveRecords->filter(function ($record) use ($financialYearStart) {
                 return $record->start_date->lte($financialYearStart->copy()->addMonths(5));
-            });
+            })->values();
     
             $secondHalfRecords = $leaveRecords->filter(function ($record) use ($financialYearStart) {
                 return $record->start_date->gt($financialYearStart->copy()->addMonths(5));
-            });
-
+            })->values();
+            
             //Log::info('Is in Second Half: ' . ($leaveRecords[0]->start_date->gt($financialYearStart->copy()->addMonths(5)) ? 'Yes' : 'No'));
 
 
