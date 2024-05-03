@@ -12,6 +12,7 @@ class Leave extends Model
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' =>'datetime',
+        'complimentary_date' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -23,6 +24,7 @@ class Leave extends Model
         'category',
         'start_date',
         'end_date',
+        'complimentary_date',
         'description',
         'approval_status',
     ];

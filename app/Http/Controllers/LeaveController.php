@@ -69,6 +69,7 @@ class LeaveController extends Controller
             'category' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'complimentary_date' => 'nullable|date',
             'description' => 'required|string',
         ]);      
 
@@ -80,6 +81,7 @@ class LeaveController extends Controller
             'approval_status' => 'pending',
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
+            'complimentary_date' => $request->complimentary_date,
             'description' => $request->description,
         ]);
            
@@ -110,7 +112,8 @@ class LeaveController extends Controller
 
         // Calculate available leave count
         $annualLeave = $user->role->leaves;
-        $takenLeaveCount = $leaveRecords->count();
+        //$takenLeaveCount = $leaveRecords->count();
+        $takenLeaveCount = $leaveRecords->where('category', '!=', 'complimentary')->count();
         $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
         // Group leave records by category and calculate total leave for each category
@@ -154,6 +157,7 @@ class LeaveController extends Controller
             'category' => 'required|string',
             'start_date' => 'date',
             'end_date' => 'date|after_or_equal:start_date',
+            'complimentary_date' => 'nullable|date',
             'description' => 'string',
          ]);     
          
@@ -164,6 +168,7 @@ class LeaveController extends Controller
             'approval_status' => 'pending',
             'start_date' => $request->input('start_date', $leave->start_date),
             'end_date' => $request->input('end_date', $leave->end_date),
+            'complimentary_date' => $request->input('complimentary_date', $leave->complimentary_date),
             'description' => $request->input('description', $leave->description),
          ]);     
         return response()->json(['message' => 'Leave updated successfully', 'data' => $leave]);
