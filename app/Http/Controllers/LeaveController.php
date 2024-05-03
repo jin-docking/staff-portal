@@ -118,11 +118,11 @@ class LeaveController extends Controller
 
         $firstHalfRecords = $leaveRecords->filter(function ($record) use ($yearStart) {
             return $record->start_date->lte($yearStart->copy()->addMonths(5));
-        });
+        })->values();
 
         $secondHalfRecords = $leaveRecords->filter(function ($record) use ($yearStart) {
             return $record->start_date->gt($yearStart->copy()->addMonths(5));
-        });
+        })->values();
 
         return response()->json([
             'total_leave' => $annualLeave,
