@@ -12,7 +12,8 @@ use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\ComputerAssistanceHubController;
 use App\Http\Controllers\Admin\AdminLeaveController;
 use App\Http\Controllers\ForgotPasswordController;
-
+use App\Http\Controllers\SkillSetController;
+use App\Models\SkillSet;
 
 /*
 |--------------------------------------------------------------------------
@@ -156,4 +157,14 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::put('holiday/update/{id}', [HolidayController::class, 'update']);
     Route::get('holiday/show/{id}', [HolidayController::class, 'show']);
     Route::delete('holiday/{id}', [HolidayController::class, 'destroy']);
+});
+
+//managing skillset
+
+Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
+    Route::get('skillsets', [SkillSetController::class, 'index']);
+    Route::post('skillsets/create', [SkillSetController::class, 'store']);
+    Route::get('skillsets/{skillSet}', [SkillSetController::class, 'show']);
+    Route::put('skillsets/update/{skillSet}', [SkillSetController::class, 'update']);
+    Route::delete('skillsets/{skillSet}', [SkillSetController::class, 'destroy']);
 });
