@@ -119,6 +119,7 @@ class LeaveController extends Controller
         // Group leave records by category and calculate total leave for each category
         $leaveByCategory = $leaveRecords->groupBy('category')->map->count();
 
+        // Split the leave records into biannual periods
         $firstHalfRecords = $leaveRecords->filter(function ($record) use ($yearStart) {
             return $record->start_date->lte($yearStart->copy()->addMonths(5));
         })->values();
