@@ -19,12 +19,13 @@ class AdminLeaveController extends Controller
      */
     public function index(Request $request)
     {
-        // Get request parameters for year, month, day, user Id and status
+        // Get request parameters for year, month, day, user Id, status and category
         $year = $request->input('year');
         $month = $request->input('month');
         $day = $request->input('day');
         $userId = $request->input('user_id');
         $status = $request->input('status');
+        $category = $request->input('category');
 
         //// Start query with base condition and eager load users
         $query = Leave::with('user');
@@ -43,6 +44,9 @@ class AdminLeaveController extends Controller
         if ($day) {
             $dayDate = Carbon::createFromDate($year, $month, $day);
             $query->whereDate('start_date', $dayDate);
+        }
+        if ($category) {
+            $query->where('category', $category);
         }
         if ($status) {
             $query->where('approval_status', $status);
