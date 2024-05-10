@@ -66,7 +66,7 @@ class UserController extends Controller
         //Building URL for profile image
         $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);
         
-
+        // Hides unnecessary fields
         $user->skillSets->makeHidden(['pivot']);
 
         return response()->json($user);

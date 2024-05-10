@@ -72,6 +72,7 @@ class CompanyInfoController extends Controller
      */
     public function show($id)
     {
+        
         if (!CompanyInfo::where('id', $id)->exists()){
             return response()->json(['message' => 'Company info does not exists'], 404);
         
