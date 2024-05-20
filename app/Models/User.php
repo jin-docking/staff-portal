@@ -69,4 +69,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(TechAssist::class);
     }
+
+    public function skillSets()
+    {
+        return $this->belongsToMany(SkillSet::class);
+    }
 }

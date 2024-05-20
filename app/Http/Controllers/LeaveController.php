@@ -19,13 +19,16 @@ class LeaveController extends Controller
      */
     public function index()
     {
+        // Get the authenticated user
         $user = Auth::user();
-    
+        
+        // Get authenticated users leaves
         $leaves = Leave::where('user_id', $user->id)->get();
 
-       
+       // Check whether the leaves are empty
         if ($leaves->isNotEmpty()) {
 
+            // Get creators name
             foreach ($leaves as $leave) {
                 $creatorName = $leave->user_id === $leave->created_by ? 'Self' : User::where('id', $leave->created_by)->value('first_name').' '.User::where('id', $leave->created_by)->value('last_name');
                 $leave->creator_name = $creatorName;
@@ -41,16 +44,22 @@ class LeaveController extends Controller
      */
     public function show($id)
     {                       
-        $leave = Leave::find($id);
+        // Find leave
+        $leave = Leave::findOrFail($id);
 
         if (!$leave) {
             return response()->json(['error' => 'Leave not found'], 404);
         }
 
+        // Get the authenticated user
         $user = Auth::user();
+
+        // Check users access permission
         if ($user->id != $leave->user_id) {
             return response()->json(['error' => 'You do not have permission to update this leave status.'], 403);
         }     
+
+        // Get creators name
         $creator = User::find($leave->created_by);
         $leave->creator_name = $creator ? $creator->first_name . ' ' . $creator->last_name : null;
     
@@ -62,8 +71,10 @@ class LeaveController extends Controller
      */
     public function store(Request $request)
     {
+        // Get the authenticated user
         $user = Auth::user();
 
+        // Validate required parameters
         $request->validate([
             'title' => 'required|string',
             'category' => 'required|string',
@@ -73,6 +84,7 @@ class LeaveController extends Controller
             'description' => 'required|string',
         ]);      
 
+        // Create leave
         $leave =Leave::create([
             'user_id' => $user->id,   
             'created_by' => $user->id,                                 
@@ -95,6 +107,7 @@ class LeaveController extends Controller
   
     public function showLeave()
     {
+        // Get the authenticated user
         $user = Auth::user();
     
         // Get the current date
@@ -119,6 +132,7 @@ class LeaveController extends Controller
         // Group leave records by category and calculate total leave for each category
         $leaveByCategory = $leaveRecords->groupBy('category')->map->count();
 
+        // Split the leave records into biannual periods
         $firstHalfRecords = $leaveRecords->filter(function ($record) use ($yearStart) {
             return $record->start_date->lte($yearStart->copy()->addMonths(5));
         })->values();
@@ -143,10 +157,14 @@ class LeaveController extends Controller
      */    
      public function update(Request $request, $id)
      {        
-         $leave = Leave::find($id);
+        // Find leaves
+         $leave = Leave::findOrFail($id);
+
          if (!$leave) {
              return response()->json(['error' => 'Leave not found'], 404);
          }
+
+         // Get the authenticated user
          $user = Auth::user();
          if ($user->id != $leave->user_id) {
              return response()->json(['error' => 'You do not have permission to update this leave status.'], 403);
@@ -198,7 +216,9 @@ class LeaveController extends Controller
         //$yearStart = $currentDate->month >= 4 ? $currentDate->startOfYear()->addMonths(3) : $currentDate->subYear()->startOfYear()->addMonths(3);
         $yearEnd = $yearStart->copy()->addYear()->subDay();
 
+        
         $leaves = Leave::select(DB::raw('user_id, COUNT(id) as total_leaves'))
+            ->where('category', '!=', 'complimentary')
             ->where('approval_status', 'approved')
             ->whereBetween('start_date', [$yearStart, $yearEnd])
             ->groupBy('user_id')
