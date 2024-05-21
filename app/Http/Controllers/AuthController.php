@@ -23,8 +23,8 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'role_id' => 'required|exists:roles,id', 
-            'skills_id' => 'nullable',
-            'skills_id.*' => 'exists:title,id',
+            'skills_sets' => 'nullable',
+            'skills_sets.*' => 'exists:title,id',
             'address' => 'required|string|max:255',
             'contact_no' => 'required|integer',
             'gender' => 'required|string|max:255',
@@ -73,7 +73,7 @@ class AuthController extends Controller
 
         $user->save();
 
-        $user->skillSets()->sync($request->input('skill_id'));
+        $user->skillSets()->sync($request->input('skill_sets'));
         
         $user->userMeta()->create([
                 'address' => $request->address,
@@ -95,7 +95,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['data' => $user,'access_token' => $token, 'token_type' => 'Bearer', ]);
+        return response()->json(['data' => $user, 'access_token' => $token, 'token_type' => 'Bearer', ]);
             
     }
 
