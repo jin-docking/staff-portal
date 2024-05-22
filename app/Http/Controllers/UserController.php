@@ -135,9 +135,9 @@ class UserController extends Controller
         $updatedUser->save();
 
         // Check if Skill ids in the request 
-        if ($request->has('skill_id')) {
+        if ($request->has('skill_sets')) {
             // Associate the skills with the user
-            $updatedUser->skillSets()->sync($request->input('skill_id'));
+            $updatedUser->skillSets()->sync($request->input('skill_sets'));
         }
 
         // Define user metadata fields
