@@ -95,7 +95,7 @@ class UserController extends Controller
     {
         // Get the authenticated user
         $user = Auth::user();
-        
+
         // Check if the user is authenticated
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated'], 401);
@@ -123,16 +123,18 @@ class UserController extends Controller
         ]);
 
         // Find the role to associate with the user
-        $role = Role::find($request->input('role_id', $updatedUser->role_id));
+        if ($request->filled('role_id')) {
+            $role = Role::find($request->input('role_id'));
 
-        // Check if the role exists
-        if (!$role) {
-            return response()->json(['error' => 'Role not found'], 404);
+            // Check if the role exists
+            if (!$role) {
+                return response()->json(['error' => 'Role not found'], 404);
+            }
+
+            // Associate the role with the user
+            $updatedUser->role()->associate($role);
+            $updatedUser->save();
         }
-
-        // Associate the role with the user
-        $updatedUser->role()->associate($role);
-        $updatedUser->save();
 
         // Check if Skill ids in the request 
         if ($request->has('skill_sets')) {
@@ -150,24 +152,32 @@ class UserController extends Controller
         $userDataToUpdate = [];
         foreach ($userMetaData as $field) {
             // Check if the field exists in the request, otherwise use the existing value
-            $userDataToUpdate[$field] = $request->input($field, $updatedUser->userMeta->$field);
+            if ($request->filled($field)) {
+                $userDataToUpdate[$field] = $request->input($field);
+            }
         }
 
         // Update profile picture if provided in the request
         if ($request->hasFile('profile_pic') && $request->file('profile_pic')->isValid()) {
-            // Delete the old profile picture
-            Storage::disk('public')->delete($updatedUser->userMeta->profile_pic);
+            // Delete the old profile picture if it exists
+            if ($updatedUser->userMeta->profile_pic) {
+                Storage::disk('public')->delete($updatedUser->userMeta->profile_pic);
+            }
+
             // Store the new profile picture
             $imagePath = $request->file('profile_pic')->store('profile_pic', 'public');
             $userDataToUpdate['profile_pic'] = $imagePath;
         }
 
         // Update user metadata fields
-        $updatedUser->userMeta()->update($userDataToUpdate);
+        if (!empty($userDataToUpdate)) {
+            $updatedUser->userMeta()->update($userDataToUpdate);
+        }
 
         // Return success response
         return response()->json(['message' => 'User updated'], 200);
     }
+
 
 
     public function userCount()
