@@ -57,7 +57,7 @@ class UserController extends Controller
     public function show($id)
     {
         //selects user with metadata, role data and skillset
-        $user = User::with(['userMeta', 'role:id,title', 'skillSets:title'])->findorFail($id);
+        $user = User::with(['userMeta', 'role:id,title', 'skillSets:id,title'])->findorFail($id);
         
         if (empty($user)){
             return response()->json(['message' => 'user not found'], 404);
@@ -107,7 +107,7 @@ class UserController extends Controller
         }
 
         // Find the user to update
-        $updatedUser = User::find($id);
+        $updatedUser = User::findOrFail($id);
 
         // Check if the user exists
         if (!$updatedUser) {
@@ -124,7 +124,7 @@ class UserController extends Controller
 
         // Find the role to associate with the user
         if ($request->filled('role_id')) {
-            $role = Role::find($request->input('role_id'));
+            $role = Role::findOrFail($request->input('role_id'));
 
             // Check if the role exists
             if (!$role) {
