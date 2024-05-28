@@ -130,7 +130,15 @@ class ComputerAssistanceHubController extends Controller
 
         $hub = TechAssist::findorFail($id);
 
-        $hub->invoice = asset('storage/' . $hub->invoice);
+        if ($hub->invoice == null) {
+            return response()->json(['data' => $hub,
+                    'user' => [        
+                    'name' => $hub->user->first_name .' '. $hub->user->last_name,
+                    'email' => $hub->user->email]]);
+        } else {
+            $hub->invoice = asset('storage/' . $hub->invoice);
+        }
+        
 
         return response()->json(['data' => $hub,
                     'user' => [        

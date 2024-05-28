@@ -62,6 +62,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // API route for logout user
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('holidays/upcoming-holidays', [HolidayController::class, 'upcomingHolidays']);
+
+     // API route for all SkillSets
+    Route::get('skillsets', [SkillSetController::class, 'index']);
 });
 
 //admin to manage staff
@@ -162,7 +165,7 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
 //managing skillset
 
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
-    Route::get('skillsets', [SkillSetController::class, 'index']);
+    
     Route::post('skillsets/create', [SkillSetController::class, 'store']);
     Route::get('skillsets/{skillSet}', [SkillSetController::class, 'show']);
     Route::put('skillsets/update/{skillSet}', [SkillSetController::class, 'update']);
