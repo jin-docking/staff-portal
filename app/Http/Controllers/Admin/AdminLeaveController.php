@@ -30,7 +30,9 @@ class AdminLeaveController extends Controller
         // Start query with base condition and eager load users
         $query = Leave::with('user');
 
-        
+        // Set financial year dates
+        $financialYearStart = Carbon::createFromDate($year, 4, 1);
+        $financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
 
         // Handle year and month filters
         if ($year && $month) {
@@ -39,9 +41,7 @@ class AdminLeaveController extends Controller
             $endDate = $startDate->copy()->endOfMonth();
             $query->whereBetween('start_date', [$startDate, $endDate]);
         } else if ($year) {
-            // Set financial year dates
-            $financialYearStart = Carbon::createFromDate($year, 4, 1);
-            $financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
+            
             // Filter by financial year
             $query->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
         }
@@ -68,16 +68,16 @@ class AdminLeaveController extends Controller
 
         $leaveReport = [];
 
+        
         if ($userId) {
-
-            // Filter leave records by financial year
             $leaveRecordsQuery = Leave::where('user_id', $userId)
                 ->where('approval_status', 'approved')
                 ->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
 
-            if ($month) {
-                $leaveRecordsQuery->whereMonth('start_date', $month);
-            }
+            /*if ($year) {
+                // Filter leave records by financial year
+                $leaveRecordsQuery->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
+            }*/
 
             $leaveRecords = $leaveRecordsQuery->get();
             
