@@ -17,28 +17,61 @@ class LeaveController extends Controller
       /**
      * Display all leaves
      */
-    public function index()
+    public function index(Request $request)
     {
         // Get the authenticated user
         $user = Auth::user();
-        
-        // Get authenticated users leaves
-        $leaves = Leave::where('user_id', $user->id)->get();
+        //return response()->json($user);
+        // Get year and status from query parameters
+        $year = $request->query('year');
+        $status = $request->query('status');
+        $month = $request->input('month');
+        $day = $request->input('day');
+        $category = $request->input('category');
+    
+        // Initialize the query
+        $query = Leave::where('user_id', $user->id);
+    
+        // Apply year filter if provided
+        if ($year) {
+            $query->whereYear('created_at', $year);
+        }
+    
+        // Apply status filter if provided
+        if ($status) {
+            $query->where('approval_status', $status);
+        }
 
-       // Check whether the leaves are empty
+        if ($month) {
+            $query->whereMonth('start_date', $month);
+        }
+
+        if ($day) {
+            $dayDate = Carbon::createFromDate($year, $month, $day);
+            $query->whereDate('start_date', $dayDate);
+        }
+        if ($category) {
+            $query->where('category', $category);
+        }
+    
+        // Get the filtered leaves
+        $leaves = $query->get();
+    
+        // Check whether the leaves are empty
         if ($leaves->isNotEmpty()) {
-
+    
             // Get creators name
             foreach ($leaves as $leave) {
                 $creatorName = $leave->user_id === $leave->created_by ? 'Self' : User::where('id', $leave->created_by)->value('first_name').' '.User::where('id', $leave->created_by)->value('last_name');
                 $leave->creator_name = $creatorName;
             }
-
+    
             return response()->json($leaves);
         } else {
             return response()->json(['message' => 'No leaves found for the authenticated user'], 404);
         }
     }
+    
     /**
      * Display a specific leave
      */
