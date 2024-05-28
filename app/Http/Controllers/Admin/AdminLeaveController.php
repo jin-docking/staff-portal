@@ -52,10 +52,10 @@ class AdminLeaveController extends Controller
             $query->whereDate('start_date', $dayDate);
         }
         if ($category) {
-            $query->where('category', strtolower($category));
+            $query->where('category', $category);
         }
         if ($status) {
-            $query->where('approval_status', strtolower($status));
+            $query->where('approval_status', $status);
         }
         if ($userId) {
             $query->where('user_id', $userId);
