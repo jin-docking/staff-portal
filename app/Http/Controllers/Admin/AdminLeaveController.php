@@ -27,20 +27,26 @@ class AdminLeaveController extends Controller
         $status = $request->input('status');
         $category = $request->input('category');
 
-        //// Start query with base condition and eager load users
+        // Start query with base condition and eager load users
         $query = Leave::with('user');
 
-        if ($year) {
-            // Set financial year dates
-            $financialYearStart = Carbon::createFromDate($year, 4, 1);
-            $financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
-            //Log::info('Financial Year Start: ' . $financialYearStart->toDateString());
+        // Set financial year dates
+        $financialYearStart = Carbon::createFromDate($year, 4, 1);
+        $financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
+
+        // Handle year and month filters
+        if ($year && $month) {
+            // Set start and end dates for the specified month and year
+            $startDate = Carbon::createFromDate($year, $month, 1);
+            $endDate = $startDate->copy()->endOfMonth();
+            $query->whereBetween('start_date', [$startDate, $endDate]);
+        } else if ($year) {
+            
             // Filter by financial year
             $query->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
         }
-        if ($month) {
-            $query->whereMonth('start_date', $month);
-        }
+        //$query->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
+
         if ($day) {
             $dayDate = Carbon::createFromDate($year, $month, $day);
             $query->whereDate('start_date', $dayDate);
@@ -54,24 +60,24 @@ class AdminLeaveController extends Controller
         if ($userId) {
             $query->where('user_id', $userId);
         }
-
+    
         // Order the results with pending leaves first
-        $query->orderBy('approval_status', 'asc');
-
+        $query->orderByRaw("FIELD(approval_status, 'pending', 'approved', 'rejected'), created_at DESC");
+    
         $leaves = $query->get();
 
         $leaveReport = [];
 
+        
         if ($userId) {
-
-            // Filter leave records by financial year
             $leaveRecordsQuery = Leave::where('user_id', $userId)
                 ->where('approval_status', 'approved')
                 ->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
 
-            if ($month) {
-                $leaveRecordsQuery->whereMonth('start_date', $month);
-            }
+            /*if ($year) {
+                // Filter leave records by financial year
+                $leaveRecordsQuery->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
+            }*/
 
             $leaveRecords = $leaveRecordsQuery->get();
             
