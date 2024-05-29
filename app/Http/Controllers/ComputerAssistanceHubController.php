@@ -54,7 +54,7 @@ class ComputerAssistanceHubController extends Controller
         $request->validate([
             'title' => 'required|string',
             'description' => 'required|string',
-            'invoice' => 'nullable|mimes:pdf|max:2048',
+            //'invoice' => 'nullable|mimes:pdf|max:2048',
         ]);   
         
         if($request->hasFile('invoice')){
@@ -63,7 +63,7 @@ class ComputerAssistanceHubController extends Controller
             $invoicePath = null;
         }
 
-        $hub =TechAssist::create([
+        $hub = TechAssist::create([
             'user_id' => $user->id,                                    
             'title' => $request->title,
             'status' => $request->input('status', 'pending'),
