@@ -60,7 +60,7 @@ class ComputerAssistanceHubController extends Controller
         if($request->hasFile('invoice')){
             $invoicePath = $request->file('invoice')->store('invoices', 'public');
         } else {
-            $invoicePath = 'invoice';
+            $invoicePath = null;
         }
 
         $hub =TechAssist::create([
