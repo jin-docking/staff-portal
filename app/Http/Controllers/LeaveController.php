@@ -55,8 +55,10 @@ class LeaveController extends Controller
         }
     
         // Get the filtered leaves
+        $query->orderByRaw("FIELD(approval_status, 'pending', 'approved', 'rejected'), created_at DESC");
+        
         $leaves = $query->get();
-    
+
         // Check whether the leaves are empty
         if ($leaves->isNotEmpty()) {
     
