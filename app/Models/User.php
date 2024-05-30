@@ -74,4 +74,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(SkillSet::class);
     }
+
+    public function locationMeta()
+    {
+        return $this->hasMany(LocationMeta::class);
+    }
 }
