@@ -9,6 +9,13 @@ class LocationMeta extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'user_id',
+        'latitude',
+        'longitude',
+        'location_time',
+    ]; 
+
     public function user()
     {
         return $this->belongsTo(User::class);

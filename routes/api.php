@@ -12,6 +12,7 @@ use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\ComputerAssistanceHubController;
 use App\Http\Controllers\Admin\AdminLeaveController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SkillSetController;
 use App\Models\SkillSet;
 
@@ -153,6 +154,7 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     Route::match(['post', 'put'],'/companyinfo/update/{id}', [CompanyInfoController::class, 'update']);
     Route::delete('/companyinfo/delete/{id}', [CompanyInfoController::class,'destroy']);
 });
+
 //managing company holiday
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
 
@@ -163,11 +165,16 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
 });
 
 //managing skillset
-
 Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
     
     Route::post('skillsets/create', [SkillSetController::class, 'store']);
     Route::get('skillsets/{skillSet}', [SkillSetController::class, 'show']);
     Route::put('skillsets/update/{skillSet}', [SkillSetController::class, 'update']);
     Route::delete('skillsets/{skillSet}', [SkillSetController::class, 'destroy']);
+});
+
+// Managing location
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('locations/create', [LocationController::class, 'store']);
+    Route::get('locations/show/{id}', [LocationController::class, 'show']);
 });
