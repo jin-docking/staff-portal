@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\LeaveNotificationMail;
+use App\Models\CompanyInfo;
 
 class LeaveController extends Controller
 {
@@ -105,40 +107,71 @@ class LeaveController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        // Get the authenticated user
-        $user = Auth::user();
+{
+    // Get the authenticated user
+    $user = Auth::user();
 
-        // Validate required parameters
-        $request->validate([
-            'title' => 'required|string',
-            'category' => 'required|string',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'complimentary_date' => 'nullable|date',
-            'description' => 'required|string',
-        ]);      
+    // Validate required parameters
+    $request->validate([
+        'title' => 'required|string',
+        'category' => 'required|string',
+        'start_date' => 'required|date',
+        'end_date' => 'required|date|after_or_equal:start_date',
+        'complimentary_date' => 'nullable|date',
+        'description' => 'required|string',
+    ]);
 
-        // Create leave
-        $leave =Leave::create([
-            'user_id' => $user->id,   
-            'created_by' => $user->id,                                 
-            'title' => $request->title,
-            'category' => $request->category,
-            'approval_status' => 'pending',
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'complimentary_date' => $request->complimentary_date,
-            'description' => $request->description,
-        ]);
-           
-        return response()->json(['message' => 'Leave applied successfully',    
-            'data' => [
-                'leave' => $leave,
-                'creator_name' => $user->first_name,
-            ],
-        ]);
+    // Create leave
+    $leave = Leave::create([
+        'user_id' => $user->id,
+        'created_by' => $user->id,
+        'title' => $request->title,
+        'category' => $request->category,
+        'approval_status' => 'pending',
+        'start_date' => $request->start_date,
+        'end_date' => $request->end_date,
+        'complimentary_date' => $request->complimentary_date,
+        'description' => $request->description,
+    ]);
+
+    $role = Role::where('title', 'Admin')->first();
+    $admin = null;
+    if ($role) {
+        $admin = User::where('role_id', $role->id)->first();
     }
+
+    $teams = $user->teams;
+    $projectManager = null;
+
+    if ($teams) {
+        foreach ($teams as $team) {
+            $projectManager = $team->projectManager;
+            if ($projectManager) {
+                break; // If you only need one project manager, you can break out of the loop
+            }
+        }
+    }
+
+    $ccEmails = [];
+    if ($projectManager) {
+        $ccEmails[] = $projectManager->email;
+    }
+
+    $companyInfo = CompanyInfo::first();
+    if ($companyInfo && $admin) {
+        $ccEmails[] = $admin->email;
+        Mail::to($companyInfo->email)->send(new LeaveNotificationMail($leave, $user, 'request', $ccEmails));
+    }
+
+    return response()->json([
+        'message' => 'Leave applied successfully',
+        'data' => [
+            'leave' => $leave,
+            'creator_name' => $user->first_name,
+        ],
+    ]);
+}
+
   
     public function showLeave()
     {
@@ -203,7 +236,11 @@ class LeaveController extends Controller
          $user = Auth::user();
          if ($user->id != $leave->user_id) {
              return response()->json(['error' => 'You do not have permission to update this leave status.'], 403);
-         }             
+         }         
+         
+         if ($leave->approval_status == 'approved') {
+            return response()->json(['error' => 'This leave connot be updated'], 403);
+         }
          
          $request->validate([
             'title' => 'required|string',
@@ -224,14 +261,38 @@ class LeaveController extends Controller
             'complimentary_date' => $request->input('complimentary_date', $leave->complimentary_date),
             'description' => $request->input('description', $leave->description),
          ]);     
+
+         $role = Role::where('title', 'Admin')->first();
+         $admin = null;
+         if ($role) {
+             $admin = User::where('role_id', $role->id)->first();
+         }
+     
+         $teams = $user->teams;
+         $projectManager = null;
+     
+         if ($teams) {
+             foreach ($teams as $team) {
+                 $projectManager = $team->projectManager;
+                 if ($projectManager) {
+                     break; 
+                 }
+             }
+         }
+     
+         $ccEmails = [];
+         if ($projectManager) {
+             $ccEmails[] = $projectManager->email;
+         }
+     
+         $companyInfo = CompanyInfo::first();
+         if ($companyInfo && $admin) {
+             $ccEmails[] = $admin->email;
+             Mail::to($companyInfo->email)->send(new LeaveNotificationMail($leave, $user, 'request', $ccEmails));
+         }
+
         return response()->json(['message' => 'Leave updated successfully', 'data' => $leave]);
-        /*$leave = Leave::find($id);
-            if (!$leave) {
-                return response()->json(['error' => 'Leave not found'], 404);
-            }
-            $user = Auth::user();
-            
-           return response()->json(['data' => ['user_id' => $user->id,'leave_id' => $leave->id, 'leave_user_id' => $leave->user_id]]);*/
+       
      }   
 
 //counts all users taken leave and returns users with highest and lowest leave.

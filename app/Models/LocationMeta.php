@@ -16,6 +16,11 @@ class LocationMeta extends Model
         'location_time',
     ]; 
 
+    protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
