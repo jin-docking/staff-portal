@@ -184,6 +184,22 @@ class AdminLeaveController extends Controller
         $user = User::where('id', $leave->user_id)->first();
 
         //Mail::to($user->email)->send(new LeaveNotificationMail($leave, $user, 'update'));
+        $teams = $user->teams;
+         $projectManager = null;
+     
+         if ($teams) {
+             foreach ($teams as $team) {
+                 $projectManager = $team->projectManager;
+                 if ($projectManager) {
+                     break; 
+                 }
+             }
+         }
+     
+         $ccEmails = [];
+         if ($projectManager) {
+             $ccEmails[] = $projectManager->email;
+         }
 
         $companyInfo = CompanyInfo::first();
 
