@@ -10,6 +10,9 @@ use App\Http\Controllers\LeaveController;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\LeaveNotificationMail;
+use App\Models\CompanyInfo;
 
 
 class AdminLeaveController extends Controller
@@ -178,6 +181,33 @@ class AdminLeaveController extends Controller
             'approval_status' => $request->input('approval_status'),
         ]);
 
+        $user = User::where('id', $leave->user_id)->first();
+
+        //Mail::to($user->email)->send(new LeaveNotificationMail($leave, $user, 'update'));
+        $teams = $user->teams;
+         $projectManager = null;
+     
+         if ($teams) {
+             foreach ($teams as $team) {
+                 $projectManager = $team->projectManager;
+                 if ($projectManager) {
+                     break; 
+                 }
+             }
+         }
+     
+         $ccEmails = [];
+         if ($projectManager) {
+             $ccEmails[] = $projectManager->email;
+         }
+
+        $companyInfo = CompanyInfo::first();
+
+        if ($companyInfo) {
+            $ccEmails = [$admin->email, $companyInfo->email];
+            Mail::to($user->email)->send(new LeaveNotificationMail($leave, $user, 'request', $ccEmails));
+        }
+
         return response()->json(['message' => 'Leave status updated successfully', 'data' => $leave]);
     }
 
@@ -237,6 +267,13 @@ class AdminLeaveController extends Controller
             'description' => $request->description,                
 
         ]);       
+
+        $companyInfo = CompanyInfo::first();
+
+        if ($companyInfo) {
+            $ccEmails = [$admin->email];
+            Mail::to($companyInfo->email)->send(new LeaveNotificationMail($leave, $user, 'request', $ccEmails));
+        }
 
         return response()->json([
             'message' => 'User leave created successfullydd',
