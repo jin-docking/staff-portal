@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\LocationMeta;
 use Illuminate\Support\Facades\Auth;
 Use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class LocationController extends Controller
 {
@@ -19,7 +20,8 @@ class LocationController extends Controller
         $sevenDaysAgo = Carbon::now()->subDays(7);
 
         $location = LocationMeta::where('user_id', $user->id)
-                            ->where('created_at', '>=', $sevenDaysAgo)
+                            ->where('location_time', '>=', $sevenDaysAgo)
+                            ->orderBy('location_time')
                             ->get();
         return response()->json(['data' => $location]);
     }
@@ -54,67 +56,64 @@ class LocationController extends Controller
      * Display the specified resource.
      */
     public function show($id)
-    { 
+    {
+
+        // Fetch the location data for the user for the last 7 days
         $sevenDaysAgo = Carbon::now()->subDays(7);
-    
-        $locations = LocationMeta::where('user_id', $id)->where('created_at', '>=', $sevenDaysAgo)->get();
-                            
-        
+
+        $locations = DB::table('location_metas')
+            ->where('user_id', $id)
+            ->where('location_time', '>=', $sevenDaysAgo)
+            ->orderBy('location_time')
+            ->get();
 
         if ($locations->isEmpty()) {
             return response()->json(['data' => []]);
         }
 
-        // Define the proximity threshold in kilometers
         $proximityThreshold = 1; // 1 km
-
-        $totalTimeSpent = [];
+        $dailyData = [];
         $currentGroup = [];
+        $currentDate = Carbon::parse($locations->first()->location_time)->toDateString();
         $currentLocation = null;
 
         foreach ($locations as $location) {
-            if ($currentLocation) {
-                $distance = $this->calculateDistance(
-                    $currentLocation->latitude,
-                    $currentLocation->longitude,
-                    $location->latitude,
-                    $location->longitude
-                );
+            $locationDate = Carbon::parse($location->location_time)->toDateString();
 
-                if ($distance > $proximityThreshold) {
-                    // Calculate time spent for the current group
-                    $timeSpent = $this->calculateTimeSpentInGroup($currentGroup);
-                    if ($timeSpent > 0) {
-                        $totalTimeSpent[] = [
-                            'latitude' => $currentLocation->latitude,
-                            'longitude' => $currentLocation->longitude,
-                            'time_spent_minutes' => $timeSpent,
-                            'time_spent_readable' => $this->formatTimeSpent($timeSpent)
-                        ];
-                    }
-                    // Start a new group
-                    $currentGroup = [];
-                }
+            if ($currentDate !== $locationDate) {
+                $this->processGroup($currentGroup, $currentLocation, $dailyData, $currentDate);
+                $currentGroup = [];
+                $currentDate = $locationDate;
+            }
+
+            if ($currentLocation && $this->calculateDistance($currentLocation->latitude, $currentLocation->longitude, $location->latitude, $location->longitude) > $proximityThreshold) {
+                $this->processGroup($currentGroup, $currentLocation, $dailyData, $currentDate);
+                $currentGroup = [];
             }
 
             $currentGroup[] = $location;
             $currentLocation = $location;
         }
 
-        // Calculate time spent for the last group
-        if (!empty($currentGroup)) {
-            $timeSpent = $this->calculateTimeSpentInGroup($currentGroup);
+        // Process the last group
+        $this->processGroup($currentGroup, $currentLocation, $dailyData, $currentDate);
+
+        return response()->json(['data' => $dailyData]);
+    }
+
+    private function processGroup(&$group, $location, &$dailyData, $date)
+    {
+        if (!empty($group) && count($group) > 1) {
+            $timeSpent = $this->calculateTimeSpentInGroup($group);
             if ($timeSpent > 0) {
-                $totalTimeSpent[] = [
-                    'latitude' => $currentLocation->latitude,
-                    'longitude' => $currentLocation->longitude,
+                $dailyData[$date][] = [
+                    'latitude' => $location->latitude,
+                    'longitude' => $location->longitude,
                     'time_spent_minutes' => $timeSpent,
                     'time_spent_readable' => $this->formatTimeSpent($timeSpent)
                 ];
             }
         }
-
-        return response()->json(['data' => $totalTimeSpent]);
     }
 
     // Calculate the Haversine distance between two points in kilometers
@@ -128,12 +127,10 @@ class LocationController extends Controller
         $a = sin($dLat / 2) * sin($dLat / 2) +
             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
             sin($dLon / 2) * sin($dLon / 2);
-        
+
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
-        $distance = $earthRadius * $c;
-
-        return $distance; // Distance in kilometers
+        return $earthRadius * $c; // Distance in kilometers
     }
 
     // Calculate the total time spent in a group of location entries
@@ -158,7 +155,6 @@ class LocationController extends Controller
 
         return sprintf('%d hours %d minutes', $hours, $remainingMinutes);
     }
-
     /**
      * Update the specified resource in storage.
      */

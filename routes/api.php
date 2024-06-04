@@ -14,7 +14,6 @@ use App\Http\Controllers\Admin\AdminLeaveController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SkillSetController;
-use App\Models\SkillSet;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,7 +68,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 //admin to manage staff
-Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:Admin,HR,Project Manager'])->group(function () {
     
     Route::get('user',[UserController::class, 'index']);
     Route::delete('user/{id}',[UserController::class, 'destroy']);

@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\UserMeta;
 use App\Models\Role;
+use App\Models\Team;
+use Illuminate\Database\Eloquent\Collection;
 
 class UserController extends Controller
 {
@@ -23,7 +25,20 @@ class UserController extends Controller
         $skills = $request->input('skills');
         $firstName = $request->input('first_name');
 
+        // Get the authenticated user
+        $user = Auth::user();
+
+        //Eager Load user's
         $query = User::with(['userMeta', 'role', 'skillSets']);
+
+        // Get currently authenticated project managers team members
+        if (strtolower($user->role->title) == 'project manager') {
+            $query->whereHas('teams', function ($teamQuery) use ($user) {
+                        $teamQuery->where('project_manager_id', $user->id);
+                    });
+        }
+
+        
 
         // Apply filtering based on skills
         if ($skills && is_array($skills) && count($skills) > 0) { // Check if $skills is an array and not empty
