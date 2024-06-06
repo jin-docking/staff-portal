@@ -35,7 +35,7 @@ class CompanyInfoController extends Controller
             'logo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'email' => 'required|string|email',
             'address' => 'required|string',
-            'contact_no' => 'required'
+            'contact_no' => 'required|min:10'
         ]);
 
         if($request->hasFile('logo')) {
