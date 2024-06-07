@@ -211,7 +211,12 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
+        $user = Auth::user();
         //Check if given user exists
+        if ($user->id == $id) {
+            return response()->json(['message' => 'user cannot be deleted'], 400);
+        }
+        
         if (User::where('id', $id)->exists()) {
             //Find and delete the user
             User::findOrFail($id)->delete();
