@@ -46,10 +46,14 @@ class LocationController extends Controller
             'location_time' => $request->input('location_time'),
         ]);
 
+        // Return the JSON response
         return response()->json([
             'message' => 'location saved successfully',
             'data' => $location
         ]);
+
+        
+        
     }
 
     /**
@@ -106,9 +110,10 @@ class LocationController extends Controller
         if (!empty($group) && count($group) > 1) {
             $timeSpent = $this->calculateTimeSpentInGroup($group);
             if ($timeSpent > 0) {
-                $dailyData[$date][] = [
+                $dailyData[] = [
                     'latitude' => $location->latitude,
                     'longitude' => $location->longitude,
+                    'location_time' => $location->location_time,
                     'time_spent_minutes' => $timeSpent,
                     'time_spent_readable' => $this->formatTimeSpent($timeSpent)
                 ];
