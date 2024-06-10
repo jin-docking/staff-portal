@@ -107,70 +107,75 @@ class LeaveController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-{
-    // Get the authenticated user
-    $user = Auth::user();
+    {
+        // Get the authenticated user
+        $user = Auth::user();
 
-    // Validate required parameters
-    $request->validate([
-        'title' => 'required|string',
-        'category' => 'required|string',
-        'start_date' => 'required|date',
-        'end_date' => 'required|date|after_or_equal:start_date',
-        'complimentary_date' => 'nullable|date',
-        'description' => 'required|string',
-    ]);
+        // Validate required parameters
+        $request->validate([
+            'title' => 'required|string',
+            'category' => 'required|string',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'complimentary_date' => 'nullable|date',
+            'description' => 'required|string',
+            'leave_session' => 'required|string',
+        ]);
 
-    // Create leave
-    $leave = Leave::create([
-        'user_id' => $user->id,
-        'created_by' => $user->id,
-        'title' => $request->title,
-        'category' => $request->category,
-        'approval_status' => 'pending',
-        'start_date' => $request->start_date,
-        'end_date' => $request->end_date,
-        'complimentary_date' => $request->complimentary_date,
-        'description' => $request->description,
-    ]);
+        $leaveCount = 0.0;
 
-    $role = Role::where('title', 'Admin')->first();
-    $admin = null;
-    if ($role) {
-        $admin = User::where('role_id', $role->id)->first();
-    }
+        // Create leave
+        
+        $leave = Leave::create([
+            'user_id' => $user->id,
+            'created_by' => $user->id,
+            'title' => $request->title,
+            'category' => $request->category,
+            'approval_status' => 'pending',
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'complimentary_date' => $request->complimentary_date,
+            'description' => $request->description,
+            'leave_count' => $leaveCount,
+            'loss_of_pay' => $request->loss_of_pay,
+            'leave_session' => $request->leave_session,
+        ]);
 
-    $teams = $user->teams;
-    $projectManager = null;
+        $role = Role::where('title', 'Admin')->first();
+        $admin = null;
+        if ($role) {
+            $admin = User::where('role_id', $role->id)->first();
+        }
 
-    if ($teams) {
-        foreach ($teams as $team) {
-            $projectManager = $team->projectManager;
-            if ($projectManager) {
-                break; // If you only need one project manager, you can break out of the loop
+        $teams = $user->teams;
+        $projectManager = null;
+
+        if ($teams) {
+            foreach ($teams as $team) {
+                $projectManager = $team->projectManager;
             }
         }
-    }
 
-    $ccEmails = [];
-    if ($projectManager) {
-        $ccEmails[] = $projectManager->email;
-    }
+        $ccEmails = [];
+        if ($projectManager) {
+            foreach ($projectManager as $manager)
+            $ccEmails[] = $manager->email;
+        }
 
-    $companyInfo = CompanyInfo::first();
-    if ($companyInfo && $admin) {
-        $ccEmails[] = $admin->email;
-        Mail::to($companyInfo->email)->send(new LeaveNotificationMail($leave, $user, 'request', $ccEmails));
-    }
+        $companyInfo = CompanyInfo::first();
+        if ($companyInfo && $admin) {
+            $ccEmails[] = $admin->email;
+            Mail::to($companyInfo->email)->send(new LeaveNotificationMail($leave, $user, 'request', $ccEmails));
+        }
 
-    return response()->json([
-        'message' => 'Leave applied successfully',
-        'data' => [
-            'leave' => $leave,
-            'creator_name' => $user->first_name,
-        ],
-    ]);
-}
+        return response()->json([
+            'message' => 'Leave applied successfully',
+            'data' => [
+                'leave' => $leave,
+                'creator_name' => $user->first_name,
+            ],
+        ]);
+    }
 
   
     public function showLeave()
@@ -193,27 +198,35 @@ class LeaveController extends Controller
 
         // Calculate available leave count
         $annualLeave = $user->role->leaves;
-        //$takenLeaveCount = $leaveRecords->count();
-        $takenLeaveCount = $leaveRecords->where('category', '!=', 'complimentary')->count();
+        $takenLeaveCount = $leaveRecords->where('category', '!=', 'complimentary')->where('category', '!=', 'restricted holiday')->sum('leave_count');
         $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
         // Group leave records by category and calculate total leave for each category
-        $leaveByCategory = $leaveRecords->groupBy('category')->map->count();
+        $leaveByCategory = $leaveRecords->groupBy('category')->map(function ($leaves) {
+            return $leaves->sum('leave_count');
+        });
 
         // Split the leave records into biannual periods
-        $firstHalfRecords = $leaveRecords->filter(function ($record) use ($yearStart) {
-            return $record->start_date->lte($yearStart->copy()->addMonths(5));
+        $firstHalfEndDate = $yearStart->copy()->addMonths(6)->subDay();
+        $firstHalfRecords = $leaveRecords->filter(function ($record) use ($yearStart, $firstHalfEndDate) {
+            return $record->start_date->between($yearStart, $firstHalfEndDate);
         })->values();
 
-        $secondHalfRecords = $leaveRecords->filter(function ($record) use ($yearStart) {
-            return $record->start_date->gt($yearStart->copy()->addMonths(5));
+        $secondHalfRecords = $leaveRecords->filter(function ($record) use ($firstHalfEndDate) {
+            return $record->start_date->gt($firstHalfEndDate);
         })->values();
+
+        // Calculate leave count for each half
+        $firstHalfLeaveCount = $firstHalfRecords->sum('leave_count');
+        $secondHalfLeaveCount = $secondHalfRecords->sum('leave_count');
 
         return response()->json([
             'total_leave' => $annualLeave,
             'leave_records' => $leaveRecords,
             'first_half_records' => $firstHalfRecords,
+            'first_half_leave_count' => $firstHalfLeaveCount,
             'second_half_records' => $secondHalfRecords,
+            'second_half_leave_count' => $secondHalfLeaveCount,
             'available_leave' => $availableLeave,
             'total_leave_by_category' => $leaveByCategory,
         ]);
@@ -260,6 +273,9 @@ class LeaveController extends Controller
             'end_date' => $request->input('end_date', $leave->end_date),
             'complimentary_date' => $request->input('complimentary_date', $leave->complimentary_date),
             'description' => $request->input('description', $leave->description),
+            'leave_count' => $request->input('leave_count', $leave->leave_count),
+            'loss_of_pay' => $request->input('loss_of_pay', $leave->loss_of_pay),
+            'leave_session' => $request->input('leave_session', $leave->leave_session),
          ]);     
 
          $role = Role::where('title', 'Admin')->first();
@@ -316,6 +332,7 @@ class LeaveController extends Controller
         $leaves = Leave::select(DB::raw('user_id, COUNT(id) as total_leaves'))
             ->where('category', '!=', 'complimentary')
             ->where('approval_status', 'approved')
+            ->where('category', '!=', 'restricted holiday')
             ->whereBetween('start_date', [$yearStart, $yearEnd])
             ->groupBy('user_id')
             ->orderBy('total_leaves')

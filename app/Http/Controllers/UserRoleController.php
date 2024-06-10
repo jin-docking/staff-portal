@@ -22,7 +22,7 @@ class UserRoleController extends Controller
     {
         $request->validate([
             'title' => 'required|string|unique:roles',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'leaves' => 'required|integer',
         ]);
 
