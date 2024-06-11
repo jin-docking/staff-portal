@@ -22,7 +22,7 @@ return new class extends Migration
             $table->text('description');
             $table->dateTime('complimentary_date')->nullable();
             $table->string('approval_status')->default("pending");
-            $table->decimal('leave_count')->nullable();
+            $table->decimal('leave_count');
             $table->string('loss_of_pay');
             $table->string('leave_session');
             $table->timestamps();

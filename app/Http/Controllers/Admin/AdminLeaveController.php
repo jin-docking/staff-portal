@@ -186,8 +186,8 @@ class AdminLeaveController extends Controller
 
         $leaveCount = 0.0;
         if ($request->input('approval_status') == 'approved') { 
-            if ($request->input('category') !== 'complimentary' && $request->input('category') !== 'restricted holiday') {
-                if ($request->input('leave_session') == 'full day') {
+            if (strtolower($request->input('category')) !== 'complimentary' && strtolower($request->input('category')) !== 'restricted holiday') {
+                if (strtolower($request->input('leave_session')) == 'full day') {
                     $startDate = Carbon::parse($request->input('start_date'));
                     $endDate = Carbon::parse($request->input('end_date'));
                     $leaveCount = $startDate->diffInDays($endDate) + 1.0; 
