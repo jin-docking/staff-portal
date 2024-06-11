@@ -86,7 +86,9 @@ class AdminLeaveController extends Controller
             
             $user = User::find($userId);
             $annualLeave = $user->role->leaves;
-            $takenLeaveCount = $leaveRecords->where('category', '!=', 'complimentary')->where('category', '!=', 'restricted holiday')->sum('leave_count');
+            $takenLeaveCount = $leaveRecords->where('category', '!=', 'complimentary')
+            ->where('category', '!=', 'restricted holiday')->sum('leave_count')
+            ->where('loss_of_pay', '!=', 'yes');
             $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
             //Log::info('Leave Records Count: ' . $leaveRecords->count());
@@ -276,6 +278,8 @@ class AdminLeaveController extends Controller
             'complimentary_date' => 'nullable|date',
             'description' => 'required|string',
             'approval_status' => 'in:approved,rejected',
+            'leave_type' => 'required|string',
+            'leave_session' => 'required|string',
                         
         ]);
 
@@ -293,6 +297,7 @@ class AdminLeaveController extends Controller
             'description' => $request->description,     
             'leave_count' => $leaveCount,
             'loss_of_pay' => $request->loss_of_pay,
+            'leave_type' => $request->leave_type,
             'leave_session' => $request->leave_session,           
 
         ]);       

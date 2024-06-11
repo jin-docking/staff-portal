@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('gender');
             $table->dateTime('join_date');
             $table->dateTime('date_of_birth');
+            $table->string('work_title')->nullable();
+            $table->string('work_experience')->default('0');
             $table->string('father')->nullable();
             $table->string('mother')->nullable();
             $table->string('marital_status');
