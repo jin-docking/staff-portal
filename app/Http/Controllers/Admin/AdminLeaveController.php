@@ -87,8 +87,9 @@ class AdminLeaveController extends Controller
             $user = User::find($userId);
             $annualLeave = $user->role->leaves;
             $takenLeaveCount = $leaveRecords->where('category', '!=', 'complimentary')
-            ->where('category', '!=', 'restricted holiday')->sum('leave_count')
-            ->where('loss_of_pay', '!=', 'yes');
+            ->where('category', '!=', 'restricted holiday')
+            ->where('loss_of_pay', '!=', 'yes')
+            ->sum('leave_count');
             $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
             //Log::info('Leave Records Count: ' . $leaveRecords->count());
