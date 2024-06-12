@@ -154,7 +154,7 @@ class UserController extends Controller
 
         // Define user metadata fields
         $userMetaData = [
-            'address', 'contact_no', 'gender', 'join_date', 'date_of_birth', 'work_title', 'work_experience', 'father',
+            'address', 'contact_no', 'gender', 'join_date', 'date_of_birth', 'work_title', 'father',
             'mother', 'marital_status', 'spouse', 'children', 'pincode', 'aadhar', 'pan'
         ];
 

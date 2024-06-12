@@ -17,7 +17,6 @@ class UserMeta extends Model
         'join_date',
         'date_of_birth',
         'work_title',
-        'work_experience',
         'father',
         'mother',
         'marital_status',
