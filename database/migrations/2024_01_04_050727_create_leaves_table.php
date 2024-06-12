@@ -20,7 +20,12 @@ return new class extends Migration
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->text('description');
+            $table->dateTime('complimentary_date')->nullable();
             $table->string('approval_status')->default("pending");
+            $table->decimal('leave_count');
+            $table->string('loss_of_pay')->nullable();
+            $table->string('leave_type');
+            $table->string('leave_session')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')

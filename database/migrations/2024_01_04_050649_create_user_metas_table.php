@@ -19,8 +19,9 @@ return new class extends Migration
             $table->string('gender');
             $table->dateTime('join_date');
             $table->dateTime('date_of_birth');
-            $table->string('father');
-            $table->string('mother');
+            $table->string('work_title')->nullable();
+            $table->string('father')->nullable();
+            $table->string('mother')->nullable();
             $table->string('marital_status');
             $table->string('spouse')->nullable();
             $table->string('children')->nullable();

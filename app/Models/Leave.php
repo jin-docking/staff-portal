@@ -27,6 +27,10 @@ class Leave extends Model
         'complimentary_date',
         'description',
         'approval_status',
+        'leave_count',
+        'loss_of_pay',
+        'leave_type',
+        'leave_session'
     ];
 
     public function user()

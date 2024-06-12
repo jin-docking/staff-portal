@@ -60,12 +60,6 @@ class UserController extends Controller
         return response()->json($users);
     }
 
-
-
-    /**
-     * Store a newly created resource in storage.
-     */
-
     /**
      * Display the specified resource.
      */
@@ -135,6 +129,7 @@ class UserController extends Controller
             'last_name' => $request->input('last_name', $updatedUser->last_name),
             'email' => $request->input('email', $updatedUser->email),
             'password' => $request->filled('password') ? Hash::make($request->input('password')) : $updatedUser->password,
+            'user_status' => $request->input('user_status', $user->user_status),
         ]);
 
         // Find the role to associate with the user
@@ -151,7 +146,7 @@ class UserController extends Controller
             $updatedUser->save();
         }
 
-        // Check if Skill ids in the request 
+        
         if ($request->has('skill_sets')) {
             // Associate the skills with the user
             $updatedUser->skillSets()->sync($request->input('skill_sets'));
@@ -159,7 +154,7 @@ class UserController extends Controller
 
         // Define user metadata fields
         $userMetaData = [
-            'address', 'contact_no', 'gender', 'join_date', 'date_of_birth', 'father',
+            'address', 'contact_no', 'gender', 'join_date', 'date_of_birth', 'work_title', 'father',
             'mother', 'marital_status', 'spouse', 'children', 'pincode', 'aadhar', 'pan'
         ];
 
@@ -198,7 +193,7 @@ class UserController extends Controller
     public function userCount()
     {   
         //Selects all users
-        $user = User::all();
+        $user = User::where('user_status', '!=', 'resigned')->get();
 
         //Take count of all users 
         $count = $user->count();

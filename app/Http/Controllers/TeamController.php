@@ -183,7 +183,8 @@ class TeamController extends Controller
         $users = collect();
 
         foreach ($roles as $roleModel) {
-            $users = $users->merge($roleModel->users);
+            $filteredUsers = $roleModel->users->where('user_status', '!=', 'resigned');
+            $users = $users->merge($filteredUsers);
         }
 
         return response()->json(['users' => $users->unique()]);

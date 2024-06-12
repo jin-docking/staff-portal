@@ -141,10 +141,10 @@ class LocationController extends Controller
     // Calculate the total time spent in a group of location entries
     private function calculateTimeSpentInGroup($group)
     {
-        if (count($group) < 2) {
-            // Not enough data to calculate time spent
+        /*if (count($group) < 2) {
+            
             return 0;
-        }
+        }*/
 
         $firstEntry = Carbon::parse($group[0]->location_time);
         $lastEntry = Carbon::parse(end($group)->location_time);

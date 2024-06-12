@@ -86,12 +86,17 @@ class AdminLeaveController extends Controller
             
             $user = User::find($userId);
             $annualLeave = $user->role->leaves;
-            $takenLeaveCount = $leaveRecords->where('category', '!=', 'complimentary')->count();
+            $takenLeaveCount = $leaveRecords->where('category', '!=', 'complimentary')
+            ->where('category', '!=', 'restricted holiday')->sum('leave_count')
+            ->where('loss_of_pay', '!=', 'yes');
             $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
             //Log::info('Leave Records Count: ' . $leaveRecords->count());
 
-            $leaveByCategory = $leaveRecords->groupBy('category')->map->count();
+            $leaveByCategory = $leaveRecords->groupBy('category')->map(function ($leaves) {
+                return $leaves->sum('leave_count');
+            });
+    
 
             $firstHalfRecords = $leaveRecords->filter(function ($record) use ($financialYearStart) {
                 return $record->start_date->lte($financialYearStart->copy()->addMonths(5));
@@ -101,13 +106,18 @@ class AdminLeaveController extends Controller
                 return $record->start_date->gt($financialYearStart->copy()->addMonths(5));
             })->values();
             
+            $firstHalfLeaveCount = $firstHalfRecords->sum('leave_count');
+            $secondHalfLeaveCount = $secondHalfRecords->sum('leave_count');
             //Log::info('Is in Second Half: ' . ($leaveRecords[0]->start_date->gt($financialYearStart->copy()->addMonths(5)) ? 'Yes' : 'No'));
 
 
             $leaveReport = [
                 'total_leave' => $annualLeave,
+                'leave_records' => $leaveRecords,
                 'first_half_records' => $firstHalfRecords,
+                'first_half_leave_count' => $firstHalfLeaveCount,
                 'second_half_records' => $secondHalfRecords,
+                'second_half_leave_count' => $secondHalfLeaveCount,
                 'available_leave' => $availableLeave,
                 'total_leave_by_category' => $leaveByCategory,
             ];
@@ -176,9 +186,25 @@ class AdminLeaveController extends Controller
             return response()->json(['error' => 'Leave not found'], 404);
         }
 
+        $leaveCount = 0.0;
+        if ($request->input('approval_status') == 'approved') { 
+            if (strtolower($request->input('category')) !== 'complimentary' && strtolower($request->input('category')) !== 'restricted holiday') {
+                if (strtolower($request->input('leave_session')) == 'full day') {
+                    $startDate = Carbon::parse($request->input('start_date'));
+                    $endDate = Carbon::parse($request->input('end_date'));
+                    $leaveCount = $startDate->diffInDays($endDate) + 1.0; 
+                } else {
+                        $leaveCount = 0.5;
+                }
+
+            }
+             
+        }
+
         // Update the approval status
         $leave->update([
             'approval_status' => $request->input('approval_status'),
+            'leave_count' => $leaveCount,
         ]);
 
         $user = User::where('id', $leave->user_id)->first();
@@ -205,7 +231,7 @@ class AdminLeaveController extends Controller
 
         if ($companyInfo) {
             $ccEmails = [$admin->email, $companyInfo->email];
-            Mail::to($user->email)->send(new LeaveNotificationMail($leave, $user, 'request', $ccEmails));
+            Mail::to($user->email)->send(new LeaveNotificationMail($leave, $user, 'update', $ccEmails));
         }
 
         return response()->json(['message' => 'Leave status updated successfully', 'data' => $leave]);
@@ -252,8 +278,12 @@ class AdminLeaveController extends Controller
             'complimentary_date' => 'nullable|date',
             'description' => 'required|string',
             'approval_status' => 'in:approved,rejected',
+            'leave_type' => 'required|string',
+            'leave_session' => 'required|string',
                         
         ]);
+
+        $leaveCount = 0.0;
         
         $leave = Leave::create([
             'user_id' => $user->id,
@@ -264,7 +294,11 @@ class AdminLeaveController extends Controller
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'complimentary_date' => $request->complimentary_date,
-            'description' => $request->description,                
+            'description' => $request->description,     
+            'leave_count' => $leaveCount,
+            'loss_of_pay' => $request->loss_of_pay,
+            'leave_type' => $request->leave_type,
+            'leave_session' => $request->leave_session,           
 
         ]);       
 

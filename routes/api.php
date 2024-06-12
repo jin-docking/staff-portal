@@ -120,7 +120,7 @@ Route::middleware(['auth:sanctum', 'role:Admin,HR'])->group(function () {
 
 //leave application
 Route::group(['middleware' => ['auth:sanctum']], function () {
-
+    Route::get('leave/available-leave/{id}',[LeaveController::class, 'availableLeave']);
     Route::get('leave/leave-count',[LeaveController::class, 'userLeaveCount']);
     Route::post('/leave', [LeaveController::class, 'store']);
     Route::put('/leaveupdate/{id}', [LeaveController::class,'update']);
