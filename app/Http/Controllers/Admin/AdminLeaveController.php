@@ -86,7 +86,7 @@ class AdminLeaveController extends Controller
             
             $user = User::find($userId);
             $annualLeave = $user->role->leaves;
-            $takenLeaveCount = $leaveRecords->where('category', '!=', 'complimentary')
+            $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary')
             ->where('category', '!=', 'restricted holiday')
             ->where('loss_of_pay', '!=', 'yes')
             ->sum('leave_count');
@@ -189,7 +189,7 @@ class AdminLeaveController extends Controller
 
         $leaveCount = 0.0;
         if ($request->input('approval_status') == 'approved') { 
-            if (strtolower($leave->category) !== 'complimentary' && strtolower($leave->category) !== 'restricted holiday') {
+            if (strtolower($leave->category) !== 'complementary' && strtolower($leave->category) !== 'restricted holiday') {
                 if (strtolower($leave->leave_type) == 'full day') {
                     $startDate = Carbon::parse($leave->start_date);
                     $endDate = Carbon::parse($leave->end_date);
@@ -287,6 +287,19 @@ class AdminLeaveController extends Controller
         ]);
 
         $leaveCount = 0.0;
+
+        if (strtolower($request->category) == 'restricted holiday') {
+            $existingRestrictedLeave = Leave::where('user_id', $user->id)
+                ->where('category', 'restricted holiday')
+                ->where('approval_status', 'approved')
+                ->first();
+    
+            if ($existingRestrictedLeave) {
+                return response()->json([
+                    'message' => 'You can only take one restricted holiday.',
+                ], 400);
+            }
+        }
         
         $leave = Leave::create([
             'user_id' => $user->id,

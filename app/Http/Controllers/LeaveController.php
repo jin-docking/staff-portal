@@ -212,7 +212,7 @@ class LeaveController extends Controller
 
         // Calculate available leave count
         $annualLeave = $user->role->leaves;
-        $takenLeaveCount = $leaveRecords->where('category', '!=', 'complimentary')
+        $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary')
                                         ->where('category', '!=', 'restricted holiday')
                                         ->where('loss_of_pay', '!=', 'yes')->sum('leave_count');
                                         
@@ -345,7 +345,7 @@ class LeaveController extends Controller
 
         
         $leaves = Leave::select(DB::raw('user_id, COUNT(id) as total_leaves'))
-            ->where('category', '!=', 'complimentary')
+            ->where('category', '!=', 'complementary')
             ->where('approval_status', 'approved')
             ->where('category', '!=', 'restricted holiday')
             ->whereBetween('start_date', [$yearStart, $yearEnd])
@@ -414,7 +414,7 @@ class LeaveController extends Controller
     {
         $user = User::findOrFail($id);
 
-        $takenLeaveCount = Leave::where('user_id', $user->id)->where('category', '!=', 'complimentary')
+        $takenLeaveCount = Leave::where('user_id', $user->id)->where('category', '!=', 'complementary')
         ->where('category', '!=', 'restricted holiday')
         ->where('loss_of_pay', '!=', 'yes')->sum('leave_count');
 
