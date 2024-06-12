@@ -120,12 +120,13 @@ class LeaveController extends Controller
             'complimentary_date' => 'nullable|date',
             'description' => 'required|string',
             'leave_type' => 'required|string',
-            'leave_session' => 'required|string',
+            'leave_session' => 'nullable|string',
         ]);
 
         if (strtolower($request->category) == 'restricted holiday') {
             $existingRestrictedLeave = Leave::where('user_id', $user->id)
-                ->where('leave_type', 'restricted')
+                ->where('category', 'restricted holiday')
+                ->where('approval_status', 'approved')
                 ->first();
     
             if ($existingRestrictedLeave) {

@@ -25,9 +25,33 @@ class UserMeta extends Model
         'pan',
         'profile_pic',
     ];
+
+    protected $casts = [
+        'join_date' => 'datetime',
+        'date_of_birth' =>'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getWorkExperienceAttribute()
+    {
+        $joinDate = $this->join_date;
+        $currentDate = now();
+        $diff = $joinDate->diff($currentDate);
+
+        $years = $diff->y;
+        $months = $diff->m;
+
+        return [
+            'years' => $years,
+            'months' => $months,
+        ];
+
     }
 }
