@@ -72,6 +72,14 @@ class UserController extends Controller
             return response()->json(['message' => 'user not found'], 404);
         }
 
+        /*$joinDate = $user->userMeta->join_date;
+        $currentDate = now();
+        $workExperience = $joinDate->diffInYears($currentDate);*/
+
+        // Add work experience to the user object
+        $user->userMeta->work_experience = $user->userMeta->work_experience;
+
+
         //Building URL for profile image
         $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);
         
@@ -89,6 +97,8 @@ class UserController extends Controller
     {   
         //selects currently logged in user with metadata, role data and skillset
         $user = Auth::user()->load('role', 'skillSets', 'userMeta');
+
+        $user->userMeta->work_experience = $user->userMeta->work_experience;
 
         //Building URL for profile image
         $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);
