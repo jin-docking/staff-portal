@@ -189,11 +189,12 @@ class AdminLeaveController extends Controller
 
         $leaveCount = 0.0;
         if ($request->input('approval_status') == 'approved') { 
-            if (strtolower($request->input('category')) !== 'complimentary' && strtolower($request->input('category')) !== 'restricted holiday') {
-                if (strtolower($request->input('leave_type')) == 'full day') {
-                    $startDate = Carbon::parse($request->input('start_date'));
-                    $endDate = Carbon::parse($request->input('end_date'));
+            if (strtolower($leave->category) !== 'complimentary' && strtolower($leave->category) !== 'restricted holiday') {
+                if (strtolower($leave->leave_type) == 'full day') {
+                    $startDate = Carbon::parse($leave->start_date);
+                    $endDate = Carbon::parse($leave->end_date);
                     $leaveCount = $startDate->diffInDays($endDate) + 1.0; 
+                    
                 } else {
                         $leaveCount = 0.5;
                 }
@@ -201,6 +202,7 @@ class AdminLeaveController extends Controller
             }
              
         }
+        
 
         // Update the approval status
         $leave->update([
