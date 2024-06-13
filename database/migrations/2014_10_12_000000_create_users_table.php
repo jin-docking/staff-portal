@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->unsignedBigInteger('role_id');
-            $table->string('user_status')->default('active');
+            $table->string('user_status');
             $table->rememberToken();
             $table->timestamps();
         });

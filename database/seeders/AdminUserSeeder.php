@@ -65,6 +65,7 @@ class AdminUserSeeder extends Seeder
             'email' => 'admin@staffmanagement.com',
             'password' => Hash::make('C9LD*rrC'),
             'role_id' => $roleId, 
+            'user_status' => 'active'
         ]);
 
         $user->userMeta()->create([

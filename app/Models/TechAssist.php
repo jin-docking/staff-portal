@@ -11,6 +11,7 @@ class TechAssist extends Model
 
     protected $fillable = [
         'user_id',
+        'created_by',
         'title',
         'description',
         'status',

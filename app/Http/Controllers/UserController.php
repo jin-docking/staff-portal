@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\UserMeta;
 use App\Models\Role;
 use App\Models\Team;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
 class UserController extends Controller
@@ -72,13 +73,20 @@ class UserController extends Controller
             return response()->json(['message' => 'user not found'], 404);
         }
 
-        /*$joinDate = $user->userMeta->join_date;
+        // Calculate work experience
+        $joinDate = $user->userMeta->join_date;
+        $joinDate = Carbon::parse($joinDate);
         $currentDate = now();
-        $workExperience = $joinDate->diffInYears($currentDate);*/
+        $work = $joinDate->diff($currentDate);
 
-        // Add work experience to the user object
-        $user->userMeta->work_experience = $user->userMeta->work_experience;
+        $years = $work->y;
+        $months = $work->m;
 
+        $workExperience = [
+            'years' => $years,
+            'months' => $months,
+        ];
+        $user->userMeta->work_experience =  $workExperience;
 
         //Building URL for profile image
         $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);
@@ -98,7 +106,20 @@ class UserController extends Controller
         //selects currently logged in user with metadata, role data and skillset
         $user = Auth::user()->load('role', 'skillSets', 'userMeta');
 
-        $user->userMeta->work_experience = $user->userMeta->work_experience;
+        // Calculate work experience
+        $joinDate = $user->userMeta->join_date;
+        $joinDate = Carbon::parse($joinDate);
+        $currentDate = now();
+        $work = $joinDate->diff($currentDate);
+
+        $years = $work->y;
+        $months = $work->m;
+
+        $workExperience = [
+            'years' => $years,
+            'months' => $months,
+        ];
+        $user->userMeta->work_experience =  $workExperience;
 
         //Building URL for profile image
         $user->userMeta->profile_pic = asset('storage/' . $user->userMeta->profile_pic);

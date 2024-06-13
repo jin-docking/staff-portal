@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('tech_assists', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('created_by');
             $table->string('title');
             $table->string('description');
             $table->string('status')->default("pending");
@@ -21,6 +22,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('created_by')->references('id')->on('users');
         });
     }
 
