@@ -90,7 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('techassist/recent-requests',[ComputerAssistanceHubController::class, 'recentAssitanceRequests']);
-    Route::post('/techassist/create',[ComputerAssistanceHubController::class, 'store']);
+    Route::post('/techassist/create/{id}',[ComputerAssistanceHubController::class, 'store']);
     Route::get('/techassists',[ComputerAssistanceHubController::class, 'index']);
     Route::get('/techassists/user-requests',[ComputerAssistanceHubController::class, 'userShow']);
     Route::get('/techassist/show/{id}',[ComputerAssistanceHubController::class, 'show']);

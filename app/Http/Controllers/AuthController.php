@@ -54,6 +54,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             //'role_id' => $request->role_id,
+            'user_status' => $request->user_status
         ]);
 
         $role = Role::find($request->input('role_id'));
@@ -71,9 +72,9 @@ class AuthController extends Controller
         $user->userMeta()->create([
                 'address' => $request->address,
                 'contact_no' => $request->contact_no,
-                'gender' => $request->gender,
-                'join_date' => $request->join_date,
+                'gender' => $request->gender,           
                 'date_of_birth' => $request->date_of_birth,
+                'join_date' => $request->join_date,
                 'work_title' => $request->work_title,
                 'father' => $request->father,
                 'mother' => $request->mother,

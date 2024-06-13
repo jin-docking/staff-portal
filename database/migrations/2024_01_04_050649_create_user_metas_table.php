@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('address');
             $table->bigInteger('contact_no');
             $table->string('gender');
-            $table->dateTime('join_date');
             $table->dateTime('date_of_birth');
+            $table->dateTime('join_date');
             $table->string('work_title')->nullable();
             $table->string('father')->nullable();
             $table->string('mother')->nullable();

@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\TechAssist;
 use App\Models\User;
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
-use Exception;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\LeaveNotificationMail;
+use App\Mail\TechRequestMail;
 
 class ComputerAssistanceHubController extends Controller
 {
@@ -19,22 +21,22 @@ class ComputerAssistanceHubController extends Controller
 
         $data = [];
         foreach ($hubs as $hub) {
+            $creatorName = $hub->created_by === $hub->user_id ? 'Self' : User::where('id', $hub->created_by)->value('first_name').' '.User::where('id', $hub->created_by)->value('last_name');
+
             $userData = [
                 'name' => $hub->user->first_name .' '. $hub->user->last_name,
-                'email' => $hub->user->email
+                'email' => $hub->user->email,
+                'creator_name' => $creatorName
             ];
 
             $data[] = [
                 'hub' => $hub,
                 'user' => $userData
             ];
-    }
+        }
 
     return response()->json(['data' => $data]);
-        /*return response()->json(['data' => $hub,
-                    'user' => [        
-                    'name' => $hub->user->first_name .' '. $hub->user->last_name,
-                    'email' => $hub->user->email]]);*/
+
     }
 
     public function userShow()
@@ -47,15 +49,19 @@ class ComputerAssistanceHubController extends Controller
 
     }
     
-    public function store(Request $request)
+    public function store(Request $request, $id)
     {
-        $user = Auth::user();
+        $authUser = Auth::user();
+
+        $user = User::findOrFail($id);
 
         $request->validate([
             'title' => 'required|string',
             'description' => 'required|string',
             //'invoice' => 'nullable|mimes:pdf|max:2048',
         ]);   
+
+
         
         if($request->hasFile('invoice')){
             $invoicePath = $request->file('invoice')->store('invoices', 'public');
@@ -64,12 +70,23 @@ class ComputerAssistanceHubController extends Controller
         }
 
         $hub = TechAssist::create([
-            'user_id' => $user->id,                                    
+            'user_id' => $user->id,
+            'created_by' => $authUser->id,                                    
             'title' => $request->title,
             'status' => $request->input('status', 'pending'),
             'description' => $request->description,
             'invoice' => $invoicePath,
         ]);
+
+        $role = Role::where('title', 'Admin')->first();
+        $admin = null;
+        if ($role) {
+            $admin = User::where('role_id', $role->id)->first();
+        }
+
+        if ($admin) {
+            Mail::to($admin->email)->send(new TechRequestMail($hub, $user, 'request'));
+        }
            
         return response()->json(['message' => 'Request for assistance has been successful',    
             'data' => [
@@ -115,7 +132,17 @@ class ComputerAssistanceHubController extends Controller
             'description' => $request->input('description', $hub->description),
             'status' => $request->input('status', $hub->status),
             'invoice' => $invoicePath,  
-        ]);     
+        ]);   
+        
+        $role = Role::where('title', 'Admin')->first();
+        $admin = null;
+        if ($role) {
+            $admin = User::where('role_id', $role->id)->first();
+        }
+
+        if ($admin) {
+            Mail::to($user->email)->send(new TechRequestMail($hub, $admin, 'request'));
+        }
 
         return response()->json(['message' => 'Request updated successfully', 'data' => $hub], 204);
     } 
@@ -130,20 +157,24 @@ class ComputerAssistanceHubController extends Controller
 
         $hub = TechAssist::findorFail($id);
 
+        
         if ($hub->invoice == null) {
-            return response()->json(['data' => $hub,
-                    'user' => [        
-                    'name' => $hub->user->first_name .' '. $hub->user->last_name,
-                    'email' => $hub->user->email]]);
+            $userData = [
+                'name' => $hub->user->first_name .' '. $hub->user->last_name,
+                'email' => $hub->user->email,
+                'creator_name' => $hub->created_by === $hub->user_id ? 'Self' : User::where('id', $hub->created_by)->value('first_name').' '.User::where('id', $hub->created_by)->value('last_name'),
+            ];
+
+            return response()->json(['data' => $hub, 'user' => $userData]);
         } else {
             $hub->invoice = asset('storage/' . $hub->invoice);
         }
-        
 
-        return response()->json(['data' => $hub,
-                    'user' => [        
-                    'name' => $hub->user->first_name .' '. $hub->user->last_name,
-                    'email' => $hub->user->email]]);
+        $userData = [
+            'name' => $hub->user->first_name .' '. $hub->user->last_name,
+            'email' => $hub->user->email,
+            'creator_name' => $hub->created_by === $hub->user_id ? 'Self' : User::where('id', $hub->created_by)->value('first_name').' '.User::where('id', $hub->created_by)->value('last_name'),
+        ];
     }
 
 
