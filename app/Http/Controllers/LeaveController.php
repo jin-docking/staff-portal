@@ -420,10 +420,13 @@ class LeaveController extends Controller
 
         $annualLeave = $user->role->leaves;
 
+        $annualLeaveString = (string) $annualLeave;
+
         $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
         return response()->json(['data' => [
             'total_leaves' => $annualLeave,
+            'total_leaves_string' => $annualLeaveString,
             'available_leave' => $availableLeave
         ]], 200);
         

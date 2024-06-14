@@ -20,6 +20,8 @@ class UserMeta extends Model
         'father',
         'mother',
         'marital_status',
+        'spouse',
+        'children',
         'pincode',
         'aadhar',
         'pan',
