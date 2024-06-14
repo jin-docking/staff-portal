@@ -282,6 +282,19 @@ class LeaveController extends Controller
             'complimentary_date' => 'nullable|date',
             'description' => 'string',
          ]);     
+
+         if (strtolower($request->category) == 'restricted holiday') {
+            $existingRestrictedLeave = Leave::where('user_id', $user->id)
+                ->where('category', 'restricted holiday')
+                ->where('approval_status', 'approved')
+                ->first();
+    
+            if ($existingRestrictedLeave) {
+                return response()->json([
+                    'message' => 'You can only take one restricted holiday.',
+                ], 400);
+            }
+        }
          
         //  update the leave
          $leave->update([
@@ -304,25 +317,28 @@ class LeaveController extends Controller
              $admin = User::where('role_id', $role->id)->first();
          }
      
-         $teams = $user->teams;
-         $projectManager = [];
-     
-         if ($teams) {
+        $projectManagers = collect(); // Initialize as an empty collection
+        $teams = $user->teams;
+        if ($teams) {
             foreach ($teams as $team) {
-                $projectManager = $team->projectManager;
+                if ($team->projectManager) {
+                    $projectManagers->push($team->projectManager);
+                }
             }
         }
 
         $ccEmails = [];
-        if ($projectManager) {
-            foreach ($projectManager as $manager)
-            $ccEmails[] = $manager->email;
+        if ($projectManagers->isNotEmpty()) { // Check if the collection is not empty
+            foreach ($projectManagers as $manager) {
+                $ccEmails[] = $manager->email;
+            }
         }
-         $companyInfo = CompanyInfo::first();
-         if ($companyInfo && $admin) {
-             $ccEmails[] = $admin->email;
-             Mail::to($companyInfo->email)->send(new LeaveNotificationMail($leave, $user, 'request', $ccEmails));
-         }
+
+        $companyInfo = CompanyInfo::first();
+        if ($companyInfo && $admin) {
+            $ccEmails[] = $admin->email;
+            Mail::to($companyInfo->email)->send(new LeaveNotificationMail($leave, $user, 'request', $ccEmails));
+        }
 
         return response()->json(['message' => 'Leave updated successfully', 'data' => $leave]);
        

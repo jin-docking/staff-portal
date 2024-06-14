@@ -213,22 +213,22 @@ class AdminLeaveController extends Controller
         $user = User::where('id', $leave->user_id)->first();
 
         //Mail::to($user->email)->send(new LeaveNotificationMail($leave, $user, 'update'));
+        $projectManagers = collect(); // Initialize as an empty collection
         $teams = $user->teams;
-         $projectManager = null;
-     
-         if ($teams) {
-             foreach ($teams as $team) {
-                 $projectManager = $team->projectManager;
-                 if ($projectManager) {
-                     break; 
-                 }
-             }
-         }
-     
-         $ccEmails = [];
-         if ($projectManager) {
-             $ccEmails[] = $projectManager->email;
-         }
+        if ($teams) {
+            foreach ($teams as $team) {
+                if ($team->projectManager) {
+                    $projectManagers->push($team->projectManager);
+                }
+            }
+        }
+
+        $ccEmails = [];
+        if ($projectManagers->isNotEmpty()) { // Check if the collection is not empty
+            foreach ($projectManagers as $manager) {
+                $ccEmails[] = $manager->email;
+            }
+        }
 
         $companyInfo = CompanyInfo::first();
 
@@ -317,6 +317,23 @@ class AdminLeaveController extends Controller
             'leave_session' => $request->leave_session,           
 
         ]);       
+
+        $projectManagers = collect(); // Initialize as an empty collection
+        $teams = $user->teams;
+        if ($teams) {
+            foreach ($teams as $team) {
+                if ($team->projectManager) {
+                    $projectManagers->push($team->projectManager);
+                }
+            }
+        }
+
+        $ccEmails = [];
+        if ($projectManagers->isNotEmpty()) { // Check if the collection is not empty
+            foreach ($projectManagers as $manager) {
+                $ccEmails[] = $manager->email;
+            }
+        }
 
         $companyInfo = CompanyInfo::first();
 
