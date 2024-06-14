@@ -161,19 +161,21 @@ class LeaveController extends Controller
             $admin = User::where('role_id', $role->id)->first();
         }
 
+        $projectManagers = collect(); // Initialize as an empty collection
         $teams = $user->teams;
-        $projectManager = [];
-
         if ($teams) {
             foreach ($teams as $team) {
-                $projectManager = $team->projectManager;
+                if ($team->projectManager) {
+                    $projectManagers->push($team->projectManager);
+                }
             }
         }
 
         $ccEmails = [];
-        if ($projectManager) {
-            foreach ($projectManager as $manager)
-            $ccEmails[] = $manager->email;
+        if ($projectManagers->isNotEmpty()) { // Check if the collection is not empty
+            foreach ($projectManagers as $manager) {
+                $ccEmails[] = $manager->email;
+            }
         }
 
         $companyInfo = CompanyInfo::first();
@@ -420,14 +422,16 @@ class LeaveController extends Controller
 
         $annualLeave = $user->role->leaves;
 
-        $annualLeaveString = (string) $annualLeave;
+        
 
         $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
+        $availableLeaveString = (string)  $availableLeave;
+
         return response()->json(['data' => [
             'total_leaves' => $annualLeave,
-            'total_leaves_string' => $annualLeaveString,
-            'available_leave' => $availableLeave
+            'available_leave' => $availableLeave,
+            'available_leave_string' => $availableLeaveString
         ]], 200);
         
     }

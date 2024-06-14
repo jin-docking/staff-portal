@@ -175,6 +175,8 @@ class ComputerAssistanceHubController extends Controller
             'email' => $hub->user->email,
             'creator_name' => $hub->created_by === $hub->user_id ? 'Self' : User::where('id', $hub->created_by)->value('first_name').' '.User::where('id', $hub->created_by)->value('last_name'),
         ];
+
+        return response()->json(['data' => $hub, 'user' => $userData]);
     }
 
 
