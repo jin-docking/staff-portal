@@ -86,7 +86,7 @@ class AdminLeaveController extends Controller
             
             $user = User::find($userId);
             $annualLeave = $user->role->leaves;
-            $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary')
+            $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary leave')
             ->where('category', '!=', 'restricted holiday')
             ->where('loss_of_pay', '!=', 'yes')
             ->sum('leave_count');
@@ -189,7 +189,7 @@ class AdminLeaveController extends Controller
 
         $leaveCount = 0.0;
         if ($request->input('approval_status') == 'approved') { 
-            if (strtolower($leave->category) !== 'complementary' && strtolower($leave->category) !== 'restricted holiday') {
+            if (strtolower($leave->category) !== 'complementary leave' && strtolower($leave->category) !== 'restricted holiday') {
                 if (strtolower($leave->leave_type) == 'full day') {
                     $startDate = Carbon::parse($leave->start_date);
                     $endDate = Carbon::parse($leave->end_date);
