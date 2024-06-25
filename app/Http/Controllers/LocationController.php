@@ -89,7 +89,7 @@ class LocationController extends Controller
 
         $locations = LocationMeta::where('user_id', $id)
                                  ->where('location_time', '>=', $sevenDaysAgo)
-                                 ->orderBy('location_time', 'desc')
+                                 ->orderBy('location_time')
                                  ->get();
 
         // Check if the user has no locations or only one location
@@ -106,7 +106,7 @@ class LocationController extends Controller
                     'longitude' => $currentLocation->longitude,
                     'time_spent' => $duration,
                     'location_time' => $currentLocation->location_time,
-                    'now' => $now
+                    //'now' => $now
                 ];
             }
 
@@ -140,7 +140,7 @@ class LocationController extends Controller
             'longitude' => $lastLocation->longitude,
             'time_spent' => $duration,
             'location_time' => $lastLocation->location_time,
-            'now' => $now
+            //'now' => $now
         ];
 
         return response()->json($timeSpent);
