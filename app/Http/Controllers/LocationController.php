@@ -38,6 +38,26 @@ class LocationController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
             'location_time' => 'required|date',
         ]);
+        
+
+        $latestLocation = LocationMeta::where('user_id', $user->id)
+        ->orderBy('location_time', 'desc')
+        ->first();
+
+        $newLocationTime = Carbon::parse($request->input('location_time'));
+        $alertMessage = null;
+
+        if ($latestLocation) {
+            $latestLocationTime = Carbon::parse($latestLocation->location_time);
+
+            // Calculate the time difference in minutes
+            $timeDifference = $latestLocationTime->diffInMinutes($newLocationTime);
+
+            if ($timeDifference <= 5) {
+                // Set the alert message
+                $alertMessage = 'User is traveling, monitor only after 15 minutes';
+            }
+        }
 
         $location = LocationMeta::create([
             'user_id' => $user->id,
@@ -46,13 +66,17 @@ class LocationController extends Controller
             'location_time' => $request->input('location_time'),
         ]);
 
-        // Return the JSON response
-        return response()->json([
-            'message' => 'location saved successfully',
-            'data' => $location
-        ]);
+        $responseMessage = 'Location saved successfully';
+        if ($alertMessage) {
+            $responseMessage .= ' | ' . $alertMessage;
+        }
 
         
+        // Return the JSON response
+        return response()->json([
+            'message' => $responseMessage,
+            'data' => $location
+        ]);
         
     }
 
@@ -61,105 +85,67 @@ class LocationController extends Controller
      */
     public function show($id)
     {
-
-        // Fetch the location data for the user for the last 7 days
         $sevenDaysAgo = Carbon::now()->subDays(7);
 
-        $locations = DB::table('location_metas')
-            ->where('user_id', $id)
-            ->where('location_time', '>=', $sevenDaysAgo)
-            ->orderBy('location_time')
-            ->get();
+        $locations = LocationMeta::where('user_id', $id)
+                                 ->where('location_time', '>=', $sevenDaysAgo)
+                                 ->orderBy('location_time', 'desc')
+                                 ->get();
 
-        if ($locations->isEmpty()) {
-            return response()->json(['data' => []]);
-        }
+        // Check if the user has no locations or only one location
+        if ($locations->count() < 2) {
+            $currentLocation = $locations->first();
 
-        $proximityThreshold = 1; // 1 km
-        $dailyData = [];
-        $currentGroup = [];
-        $currentDate = Carbon::parse($locations->first()->location_time)->toDateString();
-        $currentLocation = null;
+            $timeSpent = [];
+            if ($currentLocation) {
+                $now = Carbon::now();
+                $duration = $now->diffInMinutes(Carbon::parse($currentLocation->location_time));
 
-        foreach ($locations as $location) {
-            $locationDate = Carbon::parse($location->location_time)->toDateString();
-
-            if ($currentDate !== $locationDate) {
-                $this->processGroup($currentGroup, $currentLocation, $dailyData, $currentDate);
-                $currentGroup = [];
-                $currentDate = $locationDate;
-            }
-
-            if ($currentLocation && $this->calculateDistance($currentLocation->latitude, $currentLocation->longitude, $location->latitude, $location->longitude) > $proximityThreshold) {
-                $this->processGroup($currentGroup, $currentLocation, $dailyData, $currentDate);
-                $currentGroup = [];
-            }
-
-            $currentGroup[] = $location;
-            $currentLocation = $location;
-        }
-
-        // Process the last group
-        $this->processGroup($currentGroup, $currentLocation, $dailyData, $currentDate);
-
-        return response()->json(['data' => $dailyData]);
-    }
-
-    private function processGroup(&$group, $location, &$dailyData, $date)
-    {
-        if (!empty($group) && count($group) > 1) {
-            $timeSpent = $this->calculateTimeSpentInGroup($group);
-            if ($timeSpent > 0) {
-                $dailyData[] = [
-                    'latitude' => $location->latitude,
-                    'longitude' => $location->longitude,
-                    'location_time' => $location->location_time,
-                    'time_spent_minutes' => $timeSpent,
-                    'time_spent_readable' => $this->formatTimeSpent($timeSpent)
+                $timeSpent[] = [
+                    'latitude' => $currentLocation->latitude,
+                    'longitude' => $currentLocation->longitude,
+                    'time_spent' => $duration,
+                    'location_time' => $currentLocation->location_time,
+                    'now' => $now
                 ];
             }
+
+            return response()->json($timeSpent);
         }
+
+        $timeSpent = [];
+
+        for ($i = 0; $i < count($locations) - 1; $i++) {
+            $currentLocation = $locations[$i];
+            $nextLocation = $locations[$i + 1];
+
+            $duration = Carbon::parse($nextLocation->location_time)->diffInMinutes(Carbon::parse($currentLocation->location_time));
+
+            $timeSpent[] = [
+                'latitude' => $currentLocation->latitude,
+                'longitude' => $currentLocation->longitude,
+                'time_spent' => $duration,
+                'location_time' => $currentLocation->location_time,
+                //'now' => $now
+            ];
+        }
+
+        // Handle the last location entry
+        $lastLocation = $locations->last();
+        $now = Carbon::now();
+        $duration = $now->diffInMinutes(Carbon::parse($lastLocation->location_time));
+
+        $timeSpent[] = [
+            'latitude' => $lastLocation->latitude,
+            'longitude' => $lastLocation->longitude,
+            'time_spent' => $duration,
+            'location_time' => $lastLocation->location_time,
+            'now' => $now
+        ];
+
+        return response()->json($timeSpent);
     }
-
-    // Calculate the Haversine distance between two points in kilometers
-    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
-    {
-        $earthRadius = 6371; // Earth's radius in kilometers
-
-        $dLat = deg2rad($lat2 - $lat1);
-        $dLon = deg2rad($lon2 - $lon1);
-
-        $a = sin($dLat / 2) * sin($dLat / 2) +
-            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-            sin($dLon / 2) * sin($dLon / 2);
-
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        return $earthRadius * $c; // Distance in kilometers
-    }
-
-    // Calculate the total time spent in a group of location entries
-    private function calculateTimeSpentInGroup($group)
-    {
-        /*if (count($group) < 2) {
-            
-            return 0;
-        }*/
-
-        $firstEntry = Carbon::parse($group[0]->location_time);
-        $lastEntry = Carbon::parse(end($group)->location_time);
-
-        return $lastEntry->diffInMinutes($firstEntry);
-    }
-
-    // Format the time spent in minutes into a human-readable format (hours and minutes)
-    private function formatTimeSpent($minutes)
-    {
-        $hours = floor($minutes / 60);
-        $remainingMinutes = $minutes % 60;
-
-        return sprintf('%d hours %d minutes', $hours, $remainingMinutes);
-    }
+   
     /**
      * Update the specified resource in storage.
      */
