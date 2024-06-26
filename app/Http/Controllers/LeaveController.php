@@ -136,6 +136,17 @@ class LeaveController extends Controller
             }
         }
         $leaveCount = 0.0;
+        //if ($request->input('approval_status') == 'approved') { 
+            //if (strtolower($leave->category) !== 'complementary leave' && strtolower($leave->category) !== 'restricted holiday') {
+        if (strtolower($request->leave_type) == 'full day') {
+            $startDate = Carbon::parse($request->start_date);
+            $endDate = Carbon::parse($request->end_date);
+            $leaveCount = $startDate->diffInDays($endDate) + 1.0;             
+        } else {
+            $leaveCount = 0.5;
+        }
+             
+        //}
 
         // Create leave
         
@@ -208,7 +219,7 @@ class LeaveController extends Controller
         
         // Retrieve leave records for the user within the current financial year
         $leaveRecords = Leave::where('user_id', $user->id)
-            ->where('approval_status', 'approved')
+            ->where('approval_status', '!=', 'rejected')
             ->whereBetween('start_date', [$yearStart, $yearEnd])
             ->get();
 
@@ -216,7 +227,7 @@ class LeaveController extends Controller
         $annualLeave = $user->role->leaves;
         $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary')
                                         ->where('category', '!=', 'restricted holiday')
-                                        ->where('loss_of_pay', '!=', 'yes')->sum('leave_count');
+                                        ->sum('leave_count');
                                         
         $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
@@ -236,8 +247,11 @@ class LeaveController extends Controller
         })->values();
 
         // Calculate leave count for each half
-        $firstHalfLeaveCount = $firstHalfRecords->sum('leave_count');
-        $secondHalfLeaveCount = $secondHalfRecords->sum('leave_count');
+        $firstHalfLeaveCount = $firstHalfRecords->where('category', '!=', 'complementary')
+        ->where('category', '!=', 'restricted holiday')->sum('leave_count');
+
+        $secondHalfLeaveCount = $secondHalfRecords->where('category', '!=', 'complementary')
+        ->where('category', '!=', 'restricted holiday')->sum('leave_count');
 
         return response()->json([
             'total_leave' => $annualLeave,
