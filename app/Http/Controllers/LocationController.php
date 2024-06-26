@@ -80,71 +80,62 @@ class LocationController extends Controller
         
     }
 
+
     /**
      * Display the specified resource.
      */
+ 
+
     public function show($id)
     {
-        $sevenDaysAgo = Carbon::now()->subDays(7);
-
-        $locations = LocationMeta::where('user_id', $id)
+        
+        $userId = $id;
+    // Retrieve the latest location data for the user
+        $sevenDaysAgo = Carbon::now()->subDays(7)->startOfDay();
+        $locations = LocationMeta::where('user_id', $userId)
                                  ->where('location_time', '>=', $sevenDaysAgo)
-                                 ->orderBy('location_time')
+                                 ->orderBy('location_time', 'desc')
                                  ->get();
 
-        // Check if the user has no locations or only one location
-        if ($locations->count() < 2) {
-            $currentLocation = $locations->first();
+                                 //return response()->json($locations);
+        // Group data by date and calculate time spent at each location
+        $groupedData = $locations->groupBy(function($item) {
+            return Carbon::parse($item->location_time)->format('Y-m-d');
+        });
 
+        $result = [];
+
+        foreach ($groupedData as $date => $locations) {
             $timeSpent = [];
-            if ($currentLocation) {
-                $now = Carbon::now();
-                $duration = $now->diffInMinutes(Carbon::parse($currentLocation->location_time));
 
-                $timeSpent[] = [
-                    'latitude' => $currentLocation->latitude,
-                    'longitude' => $currentLocation->longitude,
-                    'time_spent' => $duration,
-                    'location_time' => $currentLocation->location_time,
-                    //'now' => $now
-                ];
+            foreach ($locations as $index => $location) {
+                if ($index < $locations->count() - 1) {
+                    $nextLocation = $locations[$index + 1];
+                    $timeDifference = Carbon::parse($location->location_time)
+                                            ->diffInSeconds(Carbon::parse($nextLocation->location_time));
+                    
+                    $timeSpent[] = [
+                        'location' => $location,
+                        'time_spent' => gmdate('H:i:s', $timeDifference)
+                    ];
+                } /*else {
+                    // For the last location of the day, we don't have a next location to compare with
+                    $timeSpent[] = [
+                        'location' => $location,
+                        'time_spent' => "N/A"
+                    ];
+                }*/
             }
 
-            return response()->json($timeSpent);
+            $result[] = $timeSpent;
         }
 
-        $timeSpent = [];
+        return response()->json($result);
+    
+}
 
-        for ($i = 0; $i < count($locations) - 1; $i++) {
-            $currentLocation = $locations[$i];
-            $nextLocation = $locations[$i + 1];
-
-            $duration = Carbon::parse($nextLocation->location_time)->diffInMinutes(Carbon::parse($currentLocation->location_time));
-
-            $timeSpent[] = [
-                'latitude' => $currentLocation->latitude,
-                'longitude' => $currentLocation->longitude,
-                'time_spent' => $duration,
-                'location_time' => $currentLocation->location_time,
-                //'now' => $now
-            ];
-        }
-
-        // Handle the last location entry
-        $lastLocation = $locations->last();
-        $now = Carbon::now();
-        $duration = $now->diffInMinutes(Carbon::parse($lastLocation->location_time));
-
-        $timeSpent[] = [
-            'latitude' => $lastLocation->latitude,
-            'longitude' => $lastLocation->longitude,
-            'time_spent' => $duration,
-            'location_time' => $lastLocation->location_time,
-            //'now' => $now
-        ];
-
-        return response()->json($timeSpent);
-    }
+    
+    
    
     /**
      * Update the specified resource in storage.
