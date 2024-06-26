@@ -127,7 +127,7 @@ class LocationController extends Controller
                 }*/
             }
 
-            $result[$date] = $timeSpent;
+            $result[] = $timeSpent;
         }
 
         return response()->json($result);
