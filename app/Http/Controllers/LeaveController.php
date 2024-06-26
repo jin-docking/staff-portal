@@ -225,7 +225,7 @@ class LeaveController extends Controller
 
         // Calculate available leave count
         $annualLeave = $user->role->leaves;
-        $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary')
+        $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary leave')
                                         ->where('category', '!=', 'restricted holiday')
                                         ->sum('leave_count');
                                         
@@ -247,10 +247,10 @@ class LeaveController extends Controller
         })->values();
 
         // Calculate leave count for each half
-        $firstHalfLeaveCount = $firstHalfRecords->where('category', '!=', 'complementary')
+        $firstHalfLeaveCount = $firstHalfRecords->where('category', '!=', 'complementary leave')
         ->where('category', '!=', 'restricted holiday')->sum('leave_count');
 
-        $secondHalfLeaveCount = $secondHalfRecords->where('category', '!=', 'complementary')
+        $secondHalfLeaveCount = $secondHalfRecords->where('category', '!=', 'complementary leave')
         ->where('category', '!=', 'restricted holiday')->sum('leave_count');
 
         return response()->json([

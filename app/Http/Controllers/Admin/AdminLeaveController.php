@@ -81,7 +81,7 @@ class AdminLeaveController extends Controller
             
             $user = User::find($userId);
             $annualLeave = $user->role->leaves;
-            $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary')
+            $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary leave')
             ->where('category', '!=', 'restricted holiday')
             ->sum('leave_count');
 
@@ -103,10 +103,10 @@ class AdminLeaveController extends Controller
                 return $record->start_date->gt($financialYearStart->copy()->addMonths(5));
             })->values();
             
-            $firstHalfLeaveCount = $firstHalfRecords->where('category', '!=', 'complementary')
+            $firstHalfLeaveCount = $firstHalfRecords->where('category', '!=', 'complementary leave')
             ->where('category', '!=', 'restricted holiday')->sum('leave_count');
 
-            $secondHalfLeaveCount = $secondHalfRecords->where('category', '!=', 'complementary')
+            $secondHalfLeaveCount = $secondHalfRecords->where('category', '!=', 'complementary leave')
             ->where('category', '!=', 'restricted holiday')->sum('leave_count');
             //Log::info('Is in Second Half: ' . ($leaveRecords[0]->start_date->gt($financialYearStart->copy()->addMonths(5)) ? 'Yes' : 'No'));
 
