@@ -6,10 +6,9 @@ use App\Models\Leave;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\LeaveController;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
+//use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LeaveNotificationMail;
 use App\Models\CompanyInfo;
@@ -33,9 +32,20 @@ class AdminLeaveController extends Controller
         // Start query with base condition and eager load users
         $query = Leave::with('user');
 
+        $currentDate = Carbon::now();
+        //return response()->json($currentYear);
+
         // Set financial year dates
-        $financialYearStart = Carbon::createFromDate($year, 4, 1);
-        $financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
+        //$financialYearStart = Carbon::createFromDate($year, 4, 1);
+        //$financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
+        if ($year == $currentDate->year) {
+            $financialYearStart = $currentDate->month >= 4 ? $currentDate->startOfYear()->addMonths(3) : $currentDate->subYear()->startOfYear()->addMonths(3);
+            $financialYearEnd = $financialYearStart->copy()->addYear()->subDay();
+        } else {
+            $financialYearStart = Carbon::createFromDate($year, 4, 1);
+            $financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
+        }
+        
 
         if ($year) {
             $query->whereYear('created_at', $year);
@@ -47,7 +57,11 @@ class AdminLeaveController extends Controller
 
         if ($day) {
             $dayDate = Carbon::createFromDate($year, $month, $day);
-            $query->whereDate('start_date', $dayDate);
+            //$query->whereDate('start_date', '>=', $dayDate);
+            $query->where(function($q) use ($dayDate) {
+                $q->whereDate('start_date', '<=', $dayDate)
+                  ->whereDate('end_date', '>=', $dayDate);
+            });
         }
         if ($category) {
             $query->where('category', $category);
