@@ -55,7 +55,8 @@ class LocationController extends Controller
 
             if ($timeDifference <= 5) {
                 // Set the alert message
-                $alertMessage = 'User is traveling, monitor only after 15 minutes';
+                //$alertMessage = 'User is traveling, monitor only after 15 minutes';
+                $alertMessage = 'Travelling Mode';
             }
         }
 

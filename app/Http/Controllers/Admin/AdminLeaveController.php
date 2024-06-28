@@ -6,10 +6,9 @@ use App\Models\Leave;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\LeaveController;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
+//use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LeaveNotificationMail;
 use App\Models\CompanyInfo;
@@ -33,26 +32,36 @@ class AdminLeaveController extends Controller
         // Start query with base condition and eager load users
         $query = Leave::with('user');
 
-        // Set financial year dates
-        $financialYearStart = Carbon::createFromDate($year, 4, 1);
-        $financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
+        $currentDate = Carbon::now();
+        //return response()->json($currentYear);
 
-        // Handle year and month filters
-        if ($year && $month) {
-            // Set start and end dates for the specified month and year
-            $startDate = Carbon::createFromDate($year, $month, 1);
-            $endDate = $startDate->copy()->endOfMonth();
-            $query->whereBetween('start_date', [$startDate, $endDate]);
-        } else if ($year) {
-            
-            // Filter by financial year
-            $query->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
+        // Set financial year dates
+        //$financialYearStart = Carbon::createFromDate($year, 4, 1);
+        //$financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
+        if ($year == $currentDate->year) {
+            $financialYearStart = $currentDate->month >= 4 ? $currentDate->startOfYear()->addMonths(3) : $currentDate->subYear()->startOfYear()->addMonths(3);
+            $financialYearEnd = $financialYearStart->copy()->addYear()->subDay();
+        } else {
+            $financialYearStart = Carbon::createFromDate($year, 4, 1);
+            $financialYearEnd = Carbon::createFromDate($year + 1, 3, 31);
         }
-        //$query->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
+        
+
+        if ($year) {
+            $query->whereYear('created_at', $year);
+        }
+
+        if ($month) {
+            $query->whereMonth('start_date', $month);
+        }
 
         if ($day) {
             $dayDate = Carbon::createFromDate($year, $month, $day);
-            $query->whereDate('start_date', $dayDate);
+            //$query->whereDate('start_date', '>=', $dayDate);
+            $query->where(function($q) use ($dayDate) {
+                $q->whereDate('start_date', '<=', $dayDate)
+                  ->whereDate('end_date', '>=', $dayDate);
+            });
         }
         if ($category) {
             $query->where('category', $category);
@@ -74,7 +83,7 @@ class AdminLeaveController extends Controller
         
         if ($userId) {
             $leaveRecordsQuery = Leave::where('user_id', $userId)
-                ->where('approval_status', 'approved')
+                ->where('approval_status', '!=' ,'rejected')
                 ->whereBetween('start_date', [$financialYearStart, $financialYearEnd]);
 
             /*if ($year) {
@@ -88,8 +97,8 @@ class AdminLeaveController extends Controller
             $annualLeave = $user->role->leaves;
             $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary leave')
             ->where('category', '!=', 'restricted holiday')
-            ->where('loss_of_pay', '!=', 'yes')
             ->sum('leave_count');
+
             $availableLeave = max(0, $annualLeave - $takenLeaveCount);
 
             //Log::info('Leave Records Count: ' . $leaveRecords->count());
@@ -98,6 +107,7 @@ class AdminLeaveController extends Controller
                 return $leaves->sum('leave_count');
             });
     
+            $lossOfPay = $leaveRecords->where('loss_of_pay', 'true')->sum('leave_count');
 
             $firstHalfRecords = $leaveRecords->filter(function ($record) use ($financialYearStart) {
                 return $record->start_date->lte($financialYearStart->copy()->addMonths(5));
@@ -107,8 +117,11 @@ class AdminLeaveController extends Controller
                 return $record->start_date->gt($financialYearStart->copy()->addMonths(5));
             })->values();
             
-            $firstHalfLeaveCount = $firstHalfRecords->sum('leave_count');
-            $secondHalfLeaveCount = $secondHalfRecords->sum('leave_count');
+            $firstHalfLeaveCount = $firstHalfRecords->where('category', '!=', 'complementary leave')
+            ->where('category', '!=', 'restricted holiday')->sum('leave_count');
+
+            $secondHalfLeaveCount = $secondHalfRecords->where('category', '!=', 'complementary leave')
+            ->where('category', '!=', 'restricted holiday')->sum('leave_count');
             //Log::info('Is in Second Half: ' . ($leaveRecords[0]->start_date->gt($financialYearStart->copy()->addMonths(5)) ? 'Yes' : 'No'));
 
 
@@ -121,6 +134,7 @@ class AdminLeaveController extends Controller
                 'second_half_leave_count' => $secondHalfLeaveCount,
                 'available_leave' => $availableLeave,
                 'total_leave_by_category' => $leaveByCategory,
+                'loss_of_pay' => $lossOfPay,
             ];
         }
 
@@ -187,27 +201,25 @@ class AdminLeaveController extends Controller
             return response()->json(['error' => 'Leave not found'], 404);
         }
 
-        $leaveCount = 0.0;
-        if ($request->input('approval_status') == 'approved') { 
-            if (strtolower($leave->category) !== 'complementary leave' && strtolower($leave->category) !== 'restricted holiday') {
-                if (strtolower($leave->leave_type) == 'full day') {
-                    $startDate = Carbon::parse($leave->start_date);
-                    $endDate = Carbon::parse($leave->end_date);
-                    $leaveCount = $startDate->diffInDays($endDate) + 1.0; 
+        // $leaveCount = 0.0;
+        // if ($request->input('approval_status') == 'approved') { 
+        //     //if (strtolower($leave->category) !== 'complementary leave' && strtolower($leave->category) !== 'restricted holiday') {
+        //         if (strtolower($leave->leave_type) == 'full day') {
+        //             $startDate = Carbon::parse($leave->start_date);
+        //             $endDate = Carbon::parse($leave->end_date);
+        //             $leaveCount = $startDate->diffInDays($endDate) + 1.0; 
                     
-                } else {
-                        $leaveCount = 0.5;
-                }
-
-            }
+        //         } else {
+        //                 $leaveCount = 0.5;
+        //         }
              
-        }
+        // }
         
 
         // Update the approval status
         $leave->update([
             'approval_status' => $request->input('approval_status'),
-            'leave_count' => $leaveCount,
+            //'leave_count' => $leaveCount,
         ]);
 
         $user = User::where('id', $leave->user_id)->first();
@@ -299,6 +311,14 @@ class AdminLeaveController extends Controller
                     'message' => 'You can only take one restricted holiday.',
                 ], 400);
             }
+        }
+
+        if (strtolower($request->leave_type) == 'full day') {
+            $startDate = Carbon::parse($request->start_date);
+            $endDate = Carbon::parse($request->end_date);
+            $leaveCount = $startDate->diffInDays($endDate) + 1.0;             
+        } else {
+            $leaveCount = 0.5;
         }
         
         $leave = Leave::create([
