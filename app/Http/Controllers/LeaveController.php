@@ -442,7 +442,7 @@ class LeaveController extends Controller
         
     }
 
-    public function availableLeave($id)
+    /*public function availableLeave($id)
     {
         $user = User::findOrFail($id);
 
@@ -464,7 +464,7 @@ class LeaveController extends Controller
             'available_leave_string' => $availableLeaveString
         ]], 200);
         
-    }
+    }*/
 
 }
 

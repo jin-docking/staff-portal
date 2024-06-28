@@ -80,4 +80,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(LocationMeta::class);
     }
+
+    public function loginLogs()
+    {
+        return $this->hasMany(LoginLog::class);
+    }
 }

@@ -94,11 +94,11 @@ class LocationController extends Controller
     // Retrieve the latest location data for the user
         $sevenDaysAgo = Carbon::now()->subDays(7)->startOfDay();
         $locations = LocationMeta::where('user_id', $userId)
-                                 ->where('location_time', '>=', $sevenDaysAgo)
-                                 ->orderBy('location_time', 'desc')
-                                 ->get();
+                                ->where('location_time', '>=', $sevenDaysAgo)
+                                ->orderBy('location_time', 'desc')
+                                ->get();
 
-                                 //return response()->json($locations);
+        //return response()->json($locations);
         // Group data by date and calculate time spent at each location
         $groupedData = $locations->groupBy(function($item) {
             return Carbon::parse($item->location_time)->format('Y-m-d');

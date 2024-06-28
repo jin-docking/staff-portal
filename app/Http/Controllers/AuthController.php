@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\LoginLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -107,11 +108,15 @@ class AuthController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
                 
         }
+        $user = Auth::user(); 
 
-        
+        LoginLog::create([
+            'user_id' => $user->id,
+            'login_at' => now(),
+        ]);
         //$user = User::where('email', $request['email'])->firstOrFail();
 
-        $user = Auth::user();
+        
         $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json(['access_token' => $token, 'token_type' => 'Bearer', 'role' => $user->role->title]);
             
@@ -120,6 +125,15 @@ class AuthController extends Controller
 
     public function logout()
     {
+        $user = Auth::user();
+
+            // Record logout time
+            $user->loginLogs()
+                ->whereNull('logout_at')
+                ->latest()
+                ->first()
+                ->update(['logout_at' => now()]);
+
         auth()->user()->tokens()->delete();
 
         return [
