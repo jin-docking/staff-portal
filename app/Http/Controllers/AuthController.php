@@ -112,7 +112,7 @@ class AuthController extends Controller
 
         LoginLog::create([
             'user_id' => $user->id,
-            'login_at' => now(),
+            'login_at' => now('Asia/Kolkata'),
         ]);
         //$user = User::where('email', $request['email'])->firstOrFail();
 
@@ -132,7 +132,7 @@ class AuthController extends Controller
                 ->whereNull('logout_at')
                 ->latest()
                 ->first()
-                ->update(['logout_at' => now()]);
+                ->update(['logout_at' => now('Asia/Kolkata')]);
 
         auth()->user()->tokens()->delete();
 

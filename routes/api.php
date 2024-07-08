@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\AdminLeaveController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SkillSetController;
+use App\Http\Controllers\LogActivityController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -177,4 +179,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('locations', [LocationController::class, 'index']);
     Route::post('locations/create', [LocationController::class, 'store']);
     Route::get('locations/show/{id}', [LocationController::class, 'show']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('logactivities', [LogActivityController::class, 'index']);
+    Route::get('logactivities/show/{id}', [LogActivityController::class, 'show']);
 });
