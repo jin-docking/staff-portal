@@ -148,7 +148,7 @@ class LocationController extends Controller
 
                 $result[$date][] = [
                     'login_time' => $log->login_at,
-                    'logout_time' => $logoutTime,
+                    'logout_time' => $log->logout_at,
                     'locations' => $timeSpent
                 ];
             }
