@@ -146,7 +146,7 @@ class LocationController extends Controller
                     }
                 }
 
-                $result[$date][] = [
+                $result[] = [
                     'login_time' => $log->login_at,
                     'logout_time' => $log->logout_at,
                     'locations' => $timeSpent
