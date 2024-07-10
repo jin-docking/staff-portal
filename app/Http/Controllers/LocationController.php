@@ -107,10 +107,10 @@ class LocationController extends Controller
  
         $result = [];
         //return response()->json($loginLogs);
-
+        $currentTime = now('Asia/Kolkata');
         // Filter location data within login and logout times
         foreach ($loginLogs as $log) {
-            $logoutTime = $log->logout_at ? $log->logout_at : now('Asia/Kolkata');
+            $logoutTime = $log->logout_at ? $log->logout_at : $currentTime;
             
             $filteredLocations = LocationMeta::where('user_id', $user->id)
                                              ->whereBetween('location_time', [$log->login_at, $logoutTime])
