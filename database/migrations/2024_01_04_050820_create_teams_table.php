@@ -21,11 +21,11 @@ return new class extends Migration
             $table->unsignedBigInteger('backend_team_lead_id');
             $table->timestamps();
 
-           /* $table->foreign('user_id')->references('id')->on('users')
+           /*$table->foreign('user_id')->references('id')->on('users')
                     ->onDelete('cascade');*/
-            $table->foreign('project_manager_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('frontend_team_lead_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('backend_team_lead_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('project_manager_id')->references('id')->on('users');
+            $table->foreign('frontend_team_lead_id')->references('id')->on('users');
+            $table->foreign('backend_team_lead_id')->references('id')->on('users');
         });
     }
 

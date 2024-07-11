@@ -109,7 +109,7 @@ class UserController extends Controller
         // Calculate work experience
         $joinDate = $user->userMeta->join_date;
         $joinDate = Carbon::parse($joinDate);
-        $currentDate = now();
+        $currentDate = now('Asia/Kolkata');
         $work = $joinDate->diff($currentDate);
 
         $years = $work->y;

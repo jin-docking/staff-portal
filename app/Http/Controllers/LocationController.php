@@ -107,7 +107,9 @@ class LocationController extends Controller
  
         $result = [];
         //return response()->json($loginLogs);
+
         $currentTime = now('Asia/Kolkata');
+        
         // Filter location data within login and logout times
         foreach ($loginLogs as $log) {
             $logoutTime = $log->logout_at ? $log->logout_at : $currentTime;
