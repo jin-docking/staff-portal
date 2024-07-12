@@ -28,11 +28,9 @@ return new class extends Migration
             $table->string('leave_session')->nullable();
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')
-                    ->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
-            $table->foreign('created_by')->references('id')->on('users')
-                ->onDelete('cascade');
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
