@@ -89,22 +89,30 @@ class LocationController extends Controller
      */
  
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $user = User::findOrFail($id);
         // Define the start and end dates for the last 7 days including today
-        $endDate = now('Asia/Kolkata');
-        $startDate = $endDate->copy()->subDays(7);
+        // $endDate = now('Asia/Kolkata');
+        // $startDate = $endDate->copy()->subDays(7);
+        
+        $startDate = $request->input('login_date') ? Carbon::parse($request->input('login_date'))->startOfDay() : Carbon::now()->startOfDay();
+        $endDate = $startDate->copy()->endOfDay();
 
         // Retrieve login and logout times for the user within the last 7 days including today
-        $loginLogs = LoginLog::where('user_id', $user->id)
-                            ->where(function($query) use ($startDate, $endDate) {
-                             $query->whereBetween('login_at', [$startDate, $endDate])
-                                   ->orWhereBetween('logout_at', [$startDate, $endDate]);
-                            })
-                            ->orderBy('login_at', 'desc')
-                            ->get();
+        // $loginLogs = LoginLog::where('user_id', $user->id)
+        //                     ->where(function($query) use ($startDate, $endDate) {
+        //                      $query->whereBetween('login_at', [$startDate, $endDate])
+        //                            ->orWhereBetween('logout_at', [$startDate, $endDate]);
+        //                     })
+        //                     ->orderBy('login_at', 'desc')
+        //                     ->get();
  
+        $loginLogs = LoginLog::where('user_id', $user->id)
+                                ->whereBetween('login_at', [$startDate, $endDate])
+                                ->orderBy('login_at', 'desc')
+                                ->get();
+        
         $result = [];
         //return response()->json($loginLogs);
 
