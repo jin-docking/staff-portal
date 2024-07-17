@@ -74,10 +74,11 @@ class UserController extends Controller
         }
 
         // Calculate work experience
-        $joinDate = $user->userMeta->join_date;
-        $joinDate = Carbon::parse($joinDate);
-        $currentDate = now();
-        $work = $joinDate->diff($currentDate);
+        // $joinDate = $user->userMeta->join_date;
+        // $joinDate = Carbon::parse($joinDate);
+        // $currentDate = now();
+        // $work = $joinDate->diff($currentDate);
+        $work = $this->workExp($user->userMeta->join_date);
 
         $years = $work->y;
         $months = $work->m;
@@ -107,10 +108,11 @@ class UserController extends Controller
         $user = Auth::user()->load('role', 'skillSets', 'userMeta');
 
         // Calculate work experience
-        $joinDate = $user->userMeta->join_date;
-        $joinDate = Carbon::parse($joinDate);
-        $currentDate = now('Asia/Kolkata');
-        $work = $joinDate->diff($currentDate);
+        // $joinDate = $user->userMeta->join_date;
+        // $joinDate = Carbon::parse($joinDate);
+        // $currentDate = now('Asia/Kolkata');
+        // $work = $joinDate->diff($currentDate);
+        $work = $this->workExp($user->userMeta->join_date);
 
         $years = $work->y;
         $months = $work->m;
@@ -128,6 +130,13 @@ class UserController extends Controller
     }
 
 
+    private function workExp($date)
+    {
+        $joinDate = Carbon::parse($date);
+        $currentDate = now('Asia/Kolkata');
+
+        return $joinDate->diff($currentDate);
+    } 
     /**
      * Update the specified resource in storage.
      */

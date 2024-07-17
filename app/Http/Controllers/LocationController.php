@@ -120,7 +120,7 @@ class LocationController extends Controller
         
         // Filter location data within login and logout times
         foreach ($loginLogs as $log) {
-            $logoutTime = $log->logout_at ? $log->logout_at : $currentTime;
+            $logoutTime = $log->logout_at ? $log->logout_at : $endDate;
             
             $filteredLocations = LocationMeta::where('user_id', $user->id)
                                              ->whereBetween('location_time', [$log->login_at, $logoutTime])
@@ -135,7 +135,7 @@ class LocationController extends Controller
                 $currentLocation = $filteredLocations[$i];
                 $nextTime = ($i + 1 < $locationCount) 
                             ? $filteredLocations[$i + 1]->location_time 
-                            : $logoutTime;
+                            : $currentTime;
 
                 $timeDifference = Carbon::parse($currentLocation->location_time)
                                         ->diffInSeconds(Carbon::parse($nextTime));
