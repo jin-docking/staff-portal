@@ -110,20 +110,25 @@ class LocationController extends Controller
  
         $loginLogs = LoginLog::where('user_id', $user->id)
                                 ->whereBetween('login_at', [$startDate, $endDate])
-                                ->orderBy('login_at', 'desc')
+                                ->orderBy('login_at')
                                 ->get();
         
         $result = [];
         //return response()->json($loginLogs);
 
         $currentTime = now('Asia/Kolkata');
-        
+        //$loginCount = $loginLogs->count() - 1;
         // Filter location data within login and logout times
-        foreach ($loginLogs as $log) {
-            $logoutTime = $log->logout_at ? $log->logout_at : $endDate;
+        for ($i = 0; $i <= $loginLogs->count() - 1; $i++) {
+            if($loginLogs[$i]->logout_at == null && !empty($loginLogs[$i+1])){
+                $logoutTime = $loginLogs[$i+1]->login_at;
+            } else {
+                $logoutTime = $loginLogs[$i]->logout_at ? $loginLogs[$i]->logout_at : $endDate;
+            }
+            
             
             $filteredLocations = LocationMeta::where('user_id', $user->id)
-                                             ->whereBetween('location_time', [$log->login_at, $logoutTime])
+                                             ->whereBetween('location_time', [$loginLogs[$i]->login_at, $logoutTime])
                                              ->orderBy('location_time')
                                              ->get();
 
@@ -131,10 +136,10 @@ class LocationController extends Controller
             $locationCount = $filteredLocations->count();
 
             //Calculate the time spent 
-            for($i = 0; $i <= $locationCount - 1 ; $i++) {
-                $currentLocation = $filteredLocations[$i];
-                $nextTime = ($i + 1 < $locationCount) 
-                            ? $filteredLocations[$i + 1]->location_time 
+            for($j = 0; $j <= $locationCount - 1 ; $j++) {
+                $currentLocation = $filteredLocations[$j];
+                $nextTime = ($j + 1 < $locationCount) 
+                            ? $filteredLocations[$j + 1]->location_time 
                             : $currentTime;
 
                 $timeDifference = Carbon::parse($currentLocation->location_time)
@@ -148,14 +153,14 @@ class LocationController extends Controller
             }
 
             $result[] = [
-                'login_time' => $log->login_at,
-                'logout_time' => $log->logout_at,
+                'login_time' => $loginLogs[$i]->login_at,
+                'logout_time' => $logoutTime,
                 'locations' => array_reverse($timeSpent),
             ];
             
         }
 
-        return response()->json($result);
+        return response()->json(array_reverse($result));
     }
 
     
