@@ -93,9 +93,9 @@ class LocationController extends Controller
     {
         $user = User::findOrFail($id);
 
-        if (!$user) {
-            return response()->json(['message' => 'user not found']);
-        }
+        // if (!$user) {
+        //     return response()->json(['message' => 'user not found']);
+        // }
 
         $startDate = $request->input('login_date') ? Carbon::parse($request->input('login_date'))->startOfDay() : Carbon::now()->startOfDay();
         $endDate = $startDate->copy()->endOfDay();
