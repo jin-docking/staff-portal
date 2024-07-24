@@ -18,20 +18,37 @@ class TeamController extends Controller
      */
     public function index()
     {
-        $teams = Team::with(['user.role:id,title', 'projectManager:id,first_name,last_name', 'frontendTeamLead:id,first_name,last_name', 'backendTeamLead:id,first_name,last_name'])->get();
-        
-        $teams->transform(function ($team) {
-            $team->project_manager = $team->projectManager ? $team->projectManager->first_name .' '. $team->projectManager->last_name : null;
-            $team->frontend_teamlead = $team->frontendTeamLead ? $team->frontendTeamLead->first_name .' '. $team->frontendTeamLead->last_name : null;
-            $team->backend_teamlead = $team->backendTeamLead ? $team->backendTeamLead->first_name .' '. $team->backendTeamLead->last_name : null;
-            unset($team->projectManager);
-            unset($team->frontendTeamLead);
-            unset($team->backendTeamLead);
-            return collect($team)->except(['projectManager', 'frontendTeamLead', 'backendTeamLead']);
-        });
+        $user = Auth::user();
+        $teams = collect();
+
+        if (in_array(strtolower($user->role->title), ['project manager', 'admin', 'hr'])) {
+            if (strtolower($user->role->title) == 'project manager') {
+                $teams = $user->teams()->with([
+                    'projectManager:id,first_name,last_name',
+                    'frontendTeamLead:id,first_name,last_name',
+                    'backendTeamLead:id,first_name,last_name'
+                ])->get();
+            } else {
+                $teams = Team::with([
+                    'user.role:id,title',
+                    'projectManager:id,first_name,last_name',
+                    'frontendTeamLead:id,first_name,last_name',
+                    'backendTeamLead:id,first_name,last_name'
+                ])->get();
+            }
+
+            $teams->transform(function ($team) {
+                $team->project_manager = $team->projectManager ? $team->projectManager->first_name . ' ' . $team->projectManager->last_name : null;
+                $team->frontend_teamlead = $team->frontendTeamLead ? $team->frontendTeamLead->first_name . ' ' . $team->frontendTeamLead->last_name : null;
+                $team->backend_teamlead = $team->backendTeamLead ? $team->backendTeamLead->first_name . ' ' . $team->backendTeamLead->last_name : null;
+
+                return $team->except(['projectManager', 'frontendTeamLead', 'backendTeamLead']);
+            });
+        }
 
         return response()->json($teams);
     }
+
 
     public function userTeamList()
     {
