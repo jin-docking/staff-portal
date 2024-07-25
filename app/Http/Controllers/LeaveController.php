@@ -376,9 +376,9 @@ class LeaveController extends Controller
         $yearEnd = $yearStart->copy()->addYear()->subDay();
 
         
-        $leaves = Leave::select(DB::raw('user_id, COUNT(id) as total_leaves'))
+        $leaves = Leave::select('user_id', Leave::raw('SUM(leave_count) as total_leaves'))
             ->where('category', '!=', 'complementary')
-            ->where('approval_status', 'approved')
+            ->where('approval_status','!=', 'rejected')
             ->where('category', '!=', 'restricted holiday')
             ->whereBetween('start_date', [$yearStart, $yearEnd])
             ->groupBy('user_id')
