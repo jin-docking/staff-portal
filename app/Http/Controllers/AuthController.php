@@ -95,12 +95,13 @@ class AuthController extends Controller
             
     }
 
-    //method for user login
+    // method for user login
     public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string',
+            'mode' => 'nullable|string'
         ]);
 
         if (!Auth::attempt($request->only('email', 'password')))
@@ -108,31 +109,41 @@ class AuthController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
                 
         }
+
         $user = Auth::user(); 
 
-        LoginLog::create([
+        if ($request->input('mode') == 'mobile') {
+            LoginLog::create([
             'user_id' => $user->id,
             'login_at' => now('Asia/Kolkata'),
-        ]);
+            ]);
+        }
         //$user = User::where('email', $request['email'])->firstOrFail();
 
-        
         $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json(['access_token' => $token, 'token_type' => 'Bearer', 'role' => $user->role->title]);
             
     }
-    // method for user logout and delete token
 
-    public function logout()
+    // method for user logout and delete token
+    public function logout(Request $request)
     {
+        $request->validate([
+            'mode' => 'nullable|string',
+        ]);
+
         $user = Auth::user();
 
-            // Record logout time
-            $user->loginLogs()
+        // Record logout time if the request came from mobile
+        if ($request->input('mode') == 'mobile') {
+             $user->loginLogs()
                 ->whereNull('logout_at')
                 ->latest()
                 ->first()
                 ->update(['logout_at' => now('Asia/Kolkata')]);
+        }
+            // Record logout time
+           
 
         auth()->user()->tokens()->delete();
 
