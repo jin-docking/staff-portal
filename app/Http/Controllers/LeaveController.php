@@ -126,7 +126,7 @@ class LeaveController extends Controller
         if (strtolower($request->category) == 'restricted holiday') {
             $existingRestrictedLeave = Leave::where('user_id', $user->id)
                 ->where('category', 'restricted holiday')
-                ->where('approval_status', 'approved')
+                ->where('approval_status', '!=','rejected')
                 ->first();
     
             if ($existingRestrictedLeave) {
@@ -225,8 +225,8 @@ class LeaveController extends Controller
 
         // Calculate available leave count
         $annualLeave = $user->role->leaves;
-        $takenLeaveCount = $leaveRecords->where('category', '!=', 'complementary leave')
-                                        ->where('category', '!=', 'restricted holiday')
+        $takenLeaveCount = $leaveRecords->where('category', '!=', 'Complementary Leave')
+                                        ->where('category', '!=', 'Restricted Holiday')
                                         ->sum('leave_count');
                                         
         $availableLeave = max(0, $annualLeave - $takenLeaveCount);
@@ -247,11 +247,11 @@ class LeaveController extends Controller
         })->values();
 
         // Calculate leave count for each half
-        $firstHalfLeaveCount = $firstHalfRecords->where('category', '!=', 'complementary leave')
-        ->where('category', '!=', 'restricted holiday')->sum('leave_count');
+        $firstHalfLeaveCount = $firstHalfRecords->where('category', '!=', 'Complementary Leave')
+        ->where('category', '!=', 'Restricted Holiday')->sum('leave_count');
 
-        $secondHalfLeaveCount = $secondHalfRecords->where('category', '!=', 'complementary leave')
-        ->where('category', '!=', 'restricted holiday')->sum('leave_count');
+        $secondHalfLeaveCount = $secondHalfRecords->where('category', '!=', 'Complementary Leave')
+        ->where('category', '!=', 'Restricted Holiday')->sum('leave_count');
 
         return response()->json([
             'total_leave' => $annualLeave,
@@ -300,7 +300,7 @@ class LeaveController extends Controller
          if (strtolower($request->category) == 'restricted holiday') {
             $existingRestrictedLeave = Leave::where('user_id', $user->id)
                 ->where('category', 'restricted holiday')
-                ->where('approval_status', 'approved')
+                ->where('approval_status', '!=', 'rejected')
                 ->first();
     
             if ($existingRestrictedLeave) {
