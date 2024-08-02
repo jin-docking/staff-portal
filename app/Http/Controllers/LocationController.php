@@ -70,13 +70,16 @@ class LocationController extends Controller
                 
                 $timeSpent[] = [
                     'location' => $currentLocation,
+                    'location_day' => date('l', strtotime($currentLocation->location_time)),
                     'time_spent' => $timeDifference
                 ];
                 
             }
             $result[] = [
                 'login_time' => $loginLogs[$i]->login_at,
+                'login_day' => date('l', strtotime($loginLogs[$i]->login_at)),
                 'logout_time' => $loginLogs[$i]->logout_at,
+                'logout_day' => $loginLogs[$i]->logout_at ? date('l', strtotime($loginLogs[$i]->logout_at)) : 'N/A',
                 'locations' => array_reverse($timeSpent),
             ];
         }
@@ -95,9 +98,13 @@ class LocationController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
             'location_time' => 'required|date',
         ]);
-        
 
+        $latestLogin = LoginLog::where('user_id', $user->id)
+        ->orderBy('login_at', 'desc')
+        ->first();
+        
         $latestLocation = LocationMeta::where('user_id', $user->id)
+        ->where('location_time', '>=', $latestLogin->login_at)
         ->orderBy('location_time', 'desc')
         ->first();
 
