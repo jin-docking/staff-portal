@@ -206,13 +206,17 @@ class LocationController extends Controller
                 
                 $timeSpent[] = [
                     'location' => $currentLocation,
+                    'location_day' => date('l', strtotime($currentLocation->location_time)),
                     'time_spent' => $timeDifference
                 ];
                 
             }
+            
             $result[] = [
                 'login_time' => $loginLogs[$i]->login_at,
+                'login_day' => date('l', strtotime($loginLogs[$i]->login_at)),
                 'logout_time' => $loginLogs[$i]->logout_at,
+                'logout_day' => $loginLogs[$i]->logout_at ? date('l', strtotime($loginLogs[$i]->logout_at)) : 'N/A',
                 'locations' => array_reverse($timeSpent),
             ];
         }
