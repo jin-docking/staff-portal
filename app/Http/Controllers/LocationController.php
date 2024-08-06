@@ -53,7 +53,7 @@ class LocationController extends Controller
             {
                 if (($j + 1) == $filteredLocations->count() && $logoutTime == $endDate) {
                     $currentLocation = $filteredLocations[$j];
-                    $timeDifference = 'N/A';
+                    $timeDifference = 'Counting...';
 
                 } else {
                     $currentLocation = $filteredLocations[$j]; 
@@ -111,19 +111,25 @@ class LocationController extends Controller
         $newLocationTime = Carbon::parse($request->input('location_time'));
         $alertMessage = null;
 
+        //$distance = $this->haversine($latestLocation->latitude, $latestLocation->longitude, $request->input('latitude'), $request->input('longitude'));
+
+        
         if ($latestLocation) {
-            $latestLocationTime = Carbon::parse($latestLocation->location_time);
-
-            // Calculate the time difference in minutes
-            $timeDifference = $latestLocationTime->diffInMinutes($newLocationTime);
-
-            if ($timeDifference <= 2) {
-                // Set the alert message
-                //$alertMessage = 'User is traveling, monitor only after 15 minutes';
-                $alertMessage = 'Travelling Mode';
+            $distance = $this->haversine($latestLocation->latitude, $latestLocation->longitude, $request->input('latitude'), $request->input('longitude'));
+    
+            if ($distance > 10) {
+                $latestLocationTime = Carbon::parse($latestLocation->location_time);
+    
+                // Calculate the time difference in minutes
+                $timeDifference = $latestLocationTime->diffInMinutes($newLocationTime);
+    
+                if ($timeDifference <= 2) {
+                    // Set the alert message
+                    $alertMessage = 'Travelling Mode';
+                }
             }
         }
-
+       
         $location = LocationMeta::create([
             'user_id' => $user->id,
             'latitude' => $request->input('latitude'),
@@ -143,6 +149,31 @@ class LocationController extends Controller
             'data' => $location
         ]);
         
+    }
+
+    /**
+     * Function to calculate distance using lat and long
+     */
+
+    private function haversine($lat1, $lon1, $lat2, $lon2)
+    {
+        // distance between latitudes and longitudes
+        $dLat = ($lat2 - $lat1) * M_PI / 180.0;
+        $dLon = ($lon2 - $lon1) * M_PI / 180.0;
+
+        // convert to radians
+        $lat1 = ($lat1) * M_PI / 180.0;
+        $lat2 = ($lat2) * M_PI / 180.0;
+
+        // apply formulae
+        $a = pow(sin($dLat / 2), 2) + pow(sin($dLon / 2), 2) * cos($lat1) * cos($lat2);
+        $rad = 6371; // radius of the Earth in kilometers
+        $c = 2 * asin(sqrt($a));
+        $distance_km = $rad * $c;
+
+        // convert kilometers to meters
+        $distance_m = $distance_km * 1000;
+        return $distance_m;
     }
 
 
@@ -189,7 +220,7 @@ class LocationController extends Controller
             {
                 if (($j + 1) == $filteredLocations->count() && $logoutTime == $endDate) {
                     $currentLocation = $filteredLocations[$j];
-                    $timeDifference = 'N/A';
+                    $timeDifference = 'Counting...';
 
                 } else {
                     $currentLocation = $filteredLocations[$j]; 
@@ -211,7 +242,7 @@ class LocationController extends Controller
                 ];
                 
             }
-            
+
             $result[] = [
                 'login_time' => $loginLogs[$i]->login_at,
                 'login_day' => date('l', strtotime($loginLogs[$i]->login_at)),
