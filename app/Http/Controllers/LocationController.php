@@ -53,7 +53,7 @@ class LocationController extends Controller
             {
                 if (($j + 1) == $filteredLocations->count() && $logoutTime == $endDate) {
                     $currentLocation = $filteredLocations[$j];
-                    $timeDifference = 'Counting...';
+                    $timeDifference = 'Current Location';
 
                 } else {
                     $currentLocation = $filteredLocations[$j]; 
@@ -220,7 +220,7 @@ class LocationController extends Controller
             {
                 if (($j + 1) == $filteredLocations->count() && $logoutTime == $endDate) {
                     $currentLocation = $filteredLocations[$j];
-                    $timeDifference = 'Counting...';
+                    $timeDifference = 'Current Location';
 
                 } else {
                     $currentLocation = $filteredLocations[$j]; 
