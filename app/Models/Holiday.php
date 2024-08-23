@@ -14,6 +14,7 @@ class Holiday extends Model
         'start_date',
         'end_date',
         'description',
+        'restricted_holiday',
     ];
 }
 

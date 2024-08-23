@@ -141,7 +141,9 @@ class LeaveController extends Controller
         if (strtolower($request->leave_type) == 'full day') {
             $startDate = Carbon::parse($request->start_date);
             $endDate = Carbon::parse($request->end_date);
-            $leaveCount = $startDate->diffInDays($endDate) + 1.0;             
+            $leaveCount = $startDate->diffInDaysFiltered(function(Carbon $date) {
+                return !$date->isWeekend();
+            }, $endDate) + 1.0;             
         } else {
             $leaveCount = 0.5;
         }
