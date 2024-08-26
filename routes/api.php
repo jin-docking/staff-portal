@@ -64,6 +64,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // API route for logout user
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('holidays/upcoming-holidays', [HolidayController::class, 'upcomingHolidays']);
+    Route::get('holiday/restricted-holiday', [HolidayController::class, 'upcomingRestrictedHolidays']);
 
      // API route for all SkillSets
     Route::get('skillsets', [SkillSetController::class, 'index']);

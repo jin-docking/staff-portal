@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Mail\UserUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,7 @@ use App\Models\Role;
 use App\Models\Team;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -222,6 +224,12 @@ class UserController extends Controller
         // Update user metadata fields
         if (!empty($userDataToUpdate)) {
             $updatedUser->userMeta()->update($userDataToUpdate);
+        }
+
+            // Send an email to the admin
+        $admin = User::where('role_id', Role::where('title', 'Admin')->first()->id)->first();
+        if ($admin) {
+            Mail::to($admin->email)->send(new UserUpdated($updatedUser));
         }
 
         // Return success response

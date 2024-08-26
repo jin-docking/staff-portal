@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Holiday;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 
 class HolidayController extends Controller
 {
@@ -39,6 +40,7 @@ class HolidayController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'nullable',
+            'restricted_holiday' => 'required|in:yes,no',
         ]);
 
         $holiday = Holiday::create([
@@ -46,6 +48,7 @@ class HolidayController extends Controller
             'start_date' => $request->input('start_date'),
             'end_date' => $request->input('end_date'),
             'description' => $request->input('description'),
+            'restricted_holiday' => $request->input('restricted_holiday'),
         ]);
 
         return response()->json(['message' => 'Holiday has been created'], 200);
@@ -102,7 +105,8 @@ class HolidayController extends Controller
             'title' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'description' => 'required',
+            'description' => 'nullable',
+            'restricted_holiday' => 'required|in:yes,no',
         ]);
 
         $holiday->update([
@@ -110,9 +114,19 @@ class HolidayController extends Controller
             'start_date' => $request->input('start_date', $holiday->start_date),
             'end_date' => $request->input('end_date', $holiday->end_date),
             'description' => $request->input('description', $holiday->description),
+            'restricted_holiday' => $request->input('restricted_holiday', $holiday->restricted_holiday),
         ]);
 
         return response()->json(['message' => 'Holiday updated successfully!'], 200);
+    }
+
+    public function upcomingRestrictedHolidays() {
+        
+        $now = Carbon::now();
+        $restrictedHolidays = Holiday::where('restricted_holiday', 'yes')->where('start_date', '>=', $now)->get();
+
+        return response()->json(['data' => $restrictedHolidays], 200);
+
     }
 
     /**
