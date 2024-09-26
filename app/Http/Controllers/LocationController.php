@@ -26,67 +26,64 @@ class LocationController extends Controller
         $startDate = $request->input('login_date') ? Carbon::parse($request->input('login_date'))->startOfDay() : Carbon::now()->startOfDay();
         $endDate = $startDate->copy()->endOfDay();
 
-         // Get the first login and last logout of the day
-        $firstLoginLog = LoginLog::where('user_id', $user->id)
-            ->whereBetween('login_at', [$startDate, $endDate])
-            ->orderBy('login_at')
-            ->first();
+        $loginLogs = LoginLog::where('user_id', $user->id)
+        ->whereBetween('login_at', [$startDate, $endDate])
+        ->orderBy('login_at')
+        ->get();
 
-        $lastLogoutLog = LoginLog::where('user_id', $user->id)
-            ->whereBetween('login_at', [$startDate, $endDate])
-            ->orderBy('login_at', 'desc')
-            ->first();
+        $result = [];
 
-        if (!$firstLoginLog) {
-            return response()->json(['message' => 'No logins found for this date.']);
-        }
+        for ($i = 0; $i < $loginLogs->count(); $i++)
+        {
+            if($loginLogs[$i]->logout_at == null && !empty($loginLogs[$i+1])){
+                $logoutTime = $loginLogs[$i+1]->login_at;
+            } else {
+                $logoutTime = $loginLogs[$i]->logout_at ? $loginLogs[$i]->logout_at : $endDate;
+            }
+            
+            
+            $filteredLocations = LocationMeta::where('user_id', $user->id)
+                                            ->whereBetween('location_time', [$loginLogs[$i]->login_at, $logoutTime])
+                                            ->orderBy('location_time')
+                                            ->get();
+            
+            $timeSpent = [];
 
-    
-        $logoutTime = $lastLogoutLog && $lastLogoutLog->logout_at ? $lastLogoutLog->logout_at : $endDate;
+            for ($j = 0; $j < $filteredLocations->count(); $j++)
+            {
+                if (($j + 1) == $filteredLocations->count() && $logoutTime == $endDate) {
+                    $currentLocation = $filteredLocations[$j];
+                    $timeDifference = 'Current Location';
 
-        // Fetch locations between login and logout times
-        $filteredLocations = LocationMeta::where('user_id', $user->id)
-            ->whereBetween('location_time', [$firstLoginLog->login_at, $logoutTime])
-            ->orderBy('location_time')
-            ->get();
+                } else {
+                    $currentLocation = $filteredLocations[$j]; 
+                    $nextTime = ($j + 1 < $filteredLocations->count()) 
+                              ? $filteredLocations[$j + 1]->location_time 
+                              : $logoutTime;
+                              
+                    $timeDifference = gmdate('H:i:s',Carbon::parse($filteredLocations[$j]->location_time)
+                                            ->diffInSeconds(Carbon::parse($nextTime)));
+                }
 
-
-        $timeSpent = [];
-
-        for ($j = 0; $j < $filteredLocations->count(); $j++) {
-            if (($j + 1) == $filteredLocations->count() && $logoutTime == $endDate) {
-                $currentLocation = $filteredLocations[$j];
-                $timeDifference = 'Current Location';
-
-            } else {         
-
-                $currentLocation = $filteredLocations[$j];
-                $nextTime = ($j + 1 < $filteredLocations->count())
-                    ? $filteredLocations[$j + 1]->location_time
-                    : $logoutTime;
-
-                $timeDifference = gmdate('H:i:s', Carbon::parse($filteredLocations[$j]->location_time)
-                ->diffInSeconds(Carbon::parse($nextTime)));
+                // $timeDifference = Carbon::parse($filteredLocations[$j]->location_time)
+                //                             ->diffInSeconds(Carbon::parse($filteredLocations[$j + 1]->location_time));
+                
+                $timeSpent[] = [
+                    'location' => $currentLocation,
+                    'location_day' => date('l', strtotime($currentLocation->location_time)),
+                    'time_spent' => $timeDifference
+                ];
                 
             }
-        
-            $timeSpent[] = [
-                'location' => $currentLocation,
-                'location_day' => date('l', strtotime($currentLocation->location_time)),
-                'time_spent' => $timeDifference
+            $result[] = [
+                'login_time' => $loginLogs[$i]->login_at,
+                'login_day' => date('l', strtotime($loginLogs[$i]->login_at)),
+                'logout_time' => $loginLogs[$i]->logout_at,
+                'logout_day' => $loginLogs[$i]->logout_at ? date('l', strtotime($loginLogs[$i]->logout_at)) : 'N/A',
+                'locations' => array_reverse($timeSpent),
             ];
         }
-
-        $result = [
-        'login_time' => $firstLoginLog->login_at,
-        'login_day' => date('l', strtotime($firstLoginLog->login_at)),
-        'logout_time' => $logoutTime,
-        'logout_day' => $logoutTime ? date('l', strtotime($logoutTime)) : 'N/A',
-        'locations' => array_reverse($timeSpent),
-        ];
-
-         return response()->json($result);
-
+        return response()->json(array_reverse($result));
     }
 
     /**
@@ -196,67 +193,66 @@ class LocationController extends Controller
         $startDate = $request->input('login_date') ? Carbon::parse($request->input('login_date'))->startOfDay() : Carbon::now()->startOfDay();
         $endDate = $startDate->copy()->endOfDay();
 
-        // Get the first login and last logout of the day
-        $firstLoginLog = LoginLog::where('user_id', $user->id)
-            ->whereBetween('login_at', [$startDate, $endDate])
-            ->orderBy('login_at')
-            ->first();
+        $loginLogs = LoginLog::where('user_id', $user->id)
+        ->whereBetween('login_at', [$startDate, $endDate])
+        ->orderBy('login_at')
+        ->get();
 
-        $lastLogoutLog = LoginLog::where('user_id', $user->id)
-            ->whereBetween('login_at', [$startDate, $endDate])
-            ->orderBy('login_at', 'desc')
-            ->first();
+        $result = [];
 
-        if (!$firstLoginLog) {
-            return response()->json(['message' => 'No logins found for this date.']);
-        }
+        for ($i = 0; $i < $loginLogs->count(); $i++)
+        {
+            if($loginLogs[$i]->logout_at == null && !empty($loginLogs[$i+1])){
+                $logoutTime = $loginLogs[$i+1]->login_at;
+            } else {
+                $logoutTime = $loginLogs[$i]->logout_at ? $loginLogs[$i]->logout_at : $endDate;
+            }
+            
+            
+            $filteredLocations = LocationMeta::where('user_id', $user->id)
+                                            ->whereBetween('location_time', [$loginLogs[$i]->login_at, $logoutTime])
+                                            ->orderBy('location_time')
+                                            ->get();
+            
+            $timeSpent = [];
 
-        // Determine the logout time
-        $logoutTime = $lastLogoutLog && $lastLogoutLog->logout_at ? $lastLogoutLog->logout_at : $endDate;
+            for ($j = 0; $j < $filteredLocations->count(); $j++)
+            {
+                if (($j + 1) == $filteredLocations->count() && $logoutTime == $endDate) {
+                    $currentLocation = $filteredLocations[$j];
+                    $timeDifference = 'Current Location';
 
-        // Get locations between the first login and last logout
-        $filteredLocations = LocationMeta::where('user_id', $user->id)
-            ->whereBetween('location_time', [$firstLoginLog->login_at, $logoutTime])
-            ->orderBy('location_time')
-            ->get();
+                } else {
+                    $currentLocation = $filteredLocations[$j]; 
+                    $nextTime = ($j + 1 < $filteredLocations->count()) 
+                              ? $filteredLocations[$j + 1]->location_time 
+                              : $logoutTime;
+                              
+                    $timeDifference = gmdate('H:i:s',Carbon::parse($filteredLocations[$j]->location_time)
+                                            ->diffInSeconds(Carbon::parse($nextTime)));
+                }
 
-        $timeSpent = [];
-
-        for ($j = 0; $j < $filteredLocations->count(); $j++) {
-            if (($j + 1) == $filteredLocations->count() && $logoutTime == $endDate) {
-                $currentLocation = $filteredLocations[$j];
-                $timeDifference = 'Current Location';      
-
-            } else {           
-                $currentLocation = $filteredLocations[$j];
-                $nextTime = ($j + 1 < $filteredLocations->count())
-                    ? $filteredLocations[$j + 1]->location_time
-                    : $logoutTime;                
-        
-
-                $timeDifference = gmdate('H:i:s', Carbon::parse($filteredLocations[$j]->location_time)
-                ->diffInSeconds(Carbon::parse($nextTime)));
+                // $timeDifference = Carbon::parse($filteredLocations[$j]->location_time)
+                //                             ->diffInSeconds(Carbon::parse($filteredLocations[$j + 1]->location_time));
+                
+                $timeSpent[] = [
+                    'location' => $currentLocation,
+                    'location_day' => date('l', strtotime($currentLocation->location_time)),
+                    'time_spent' => $timeDifference
+                ];
                 
             }
 
-            $timeSpent[] = [
-                'location' => $currentLocation,
-                'location_day' => date('l', strtotime($currentLocation->location_time)),
-                'time_spent' => $timeDifference
+            $result[] = [
+                'login_time' => $loginLogs[$i]->login_at,
+                'login_day' => date('l', strtotime($loginLogs[$i]->login_at)),
+                'logout_time' => $loginLogs[$i]->logout_at,
+                'logout_day' => $loginLogs[$i]->logout_at ? date('l', strtotime($loginLogs[$i]->logout_at)) : 'N/A',
+                'locations' => array_reverse($timeSpent),
             ];
         }
-
-
-        $result = [
-        'login_time' => $firstLoginLog->login_at,
-        'login_day' => date('l', strtotime($firstLoginLog->login_at)),
-        'logout_time' => $logoutTime,
-        'logout_day' => $logoutTime ? date('l', strtotime($logoutTime)) : 'N/A',
-        'locations' => array_reverse($timeSpent),
-        ];
-
-        return response()->json($result);
-    }    
+        return response()->json(array_reverse($result));
+    }
 
     
     
